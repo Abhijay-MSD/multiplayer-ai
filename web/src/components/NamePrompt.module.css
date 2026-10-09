@@ -1,0 +1,108 @@
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.signal {
+  width: 100%;
+  margin-bottom: var(--space-1);
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 500;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--field-radius);
+  background: var(--field-bg);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+  transition: border-color var(--duration-standard) var(--ease-standard),
+    box-shadow var(--duration-standard) var(--ease-standard);
+}
+
+/* Resting state is quiet (line) so the signal accent still reads as
+   special when it appears on focus — 20.3, 20.8. */
+.input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.button {
+  align-self: flex-start;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+/* 20.8: the one place `signal` appears as a fill is the single most
+   important action in a given view — on this screen, that's this button. */
+.button:not(:disabled) {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.button:not(:disabled):hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+
+.button:not(:disabled):active {
+  transform: translateY(0);
+  filter: brightness(0.9);
+}
+
+.button:not(:disabled):focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* Quiet, clearly-disabled resting state — not the same gray as "always
+   unavailable," just "not yet." */
+.button:disabled {
+  background: var(--bg-sunk);
+  color: var(--text-muted);
+  border-color: var(--border);
+  cursor: default;
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.suggestion {
+  align-self: flex-start;
+  padding: 0;
+  color: var(--text);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

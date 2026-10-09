@@ -1,0 +1,40 @@
+/* Hidden until a theme's structure.css turns it on. */
+.details {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.heading {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-1);
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--display-weight);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.task {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* In the phone drawer every theme shows the room details. */
+@media (max-width: 720px) {
+  .details {
+    display: flex;
+    padding: var(--space-6) var(--space-5) 0;
+  }
+}

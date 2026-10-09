@@ -1,0 +1,72 @@
+# NOT RUN. This workflow has never been executed on GitHub Actions. Every step was run by hand in a fresh clone on a Mac
+# (Node 24), and the server tests and a build were also run in Linux containers on Node 22.13.0, 22.23.3 and 24. The action
+# versions below are tags, not commit SHAs, and were not checked against GitHub. Expect to fix something the first time it
+# runs. When it has run green once, delete this note.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: ${{ matrix.os }}, Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: ["22.13.0", "24"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the secrets scan reads the whole history
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install
+        run: |
+          npm ci --prefix server
+          npm ci --prefix web
+          npm ci --prefix web/qa
+
+      - name: Build the web app
+        run: npm run build
+
+      - name: Server tests
+        run: npm test
+
+      - name: Install the browser (Linux)
+        if: runner.os == 'Linux'
+        working-directory: web/qa
+        run: npx playwright install --with-deps chromium
+
+      - name: Install the browser (macOS)
+        if: runner.os == 'macOS'
+        working-directory: web/qa
+        run: npx playwright install chromium
+
+      - name: Browser tests
+        working-directory: web/qa
+        run: npm test
+
+      - name: Copy check
+        run: npm run check:copy
+
+      - name: Secrets scan
+        run: node scripts/scan-secrets.mjs
+
+      - name: Audit (high and above)
+        run: |
+          npm audit --audit-level=high --prefix server
+          npm audit --audit-level=high --prefix web

@@ -1,0 +1,116 @@
+/* Plain: neutral grays, one steel-blue accent, one centered column. Dark mode
+   is charcoal, not black. Code uses the system monospace, so this theme
+   downloads a single font family. */
+
+[data-theme="plain"] {
+  --font-ui: "Figtree Variable", "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Figtree Variable", "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-agent: var(--font-ui);
+  --display-weight: 600;
+  --display-tracking: 0;
+
+  --text-xs: 13px;
+  --text-sm: 15px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+
+  --radius-xs: 4px;
+  --radius: 10px;
+  --radius-input: 12px;
+  --field-radius: 12px;
+
+  --stage-max: 48rem;
+  --stage-pad-x: var(--space-5);
+  --entry-gap: var(--space-5);
+  --entry-max: 100%;
+  --rail-width: 280px;
+
+  /* Agent replies are plain text on the page. */
+  --agent-bg: transparent;
+  --agent-pad: 0;
+  --agent-radius: 0;
+  --agent-size: 16px;
+  --agent-leading: 1.7;
+
+  /* The controller's messages and comments are right-aligned soft bubbles. */
+  --directive-bg: var(--tint);
+  --directive-pad: 10px 16px;
+  --directive-radius: 20px;
+  --directive-align: flex-end;
+  --bubble-max: 80%;
+
+  --comment-bg: color-mix(in srgb, var(--tint) 45%, transparent);
+  --comment-pad: 0;
+  --comment-body-pad: 8px 14px;
+  --comment-radius: 18px;
+  --comment-rule: none;
+  --comment-align: flex-end;
+  --comment-pull: 0;
+
+  --signal-height: 20px;
+  --signal-label-size: 14px;
+
+  --shadow-soft: 0 1px 3px rgba(20, 20, 24, 0.08);
+  --shadow-lift: 0 2px 8px rgba(20, 20, 24, 0.1);
+  --shadow-composer: 0 2px 14px rgba(20, 20, 24, 0.09);
+  --shadow-pop: 0 10px 30px rgba(20, 20, 24, 0.16);
+}
+
+[data-theme="plain"][data-mode="light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-sunk: #f6f6f7;
+  --surface: #ffffff;
+  --tint: #f0f0f2;
+  --text: #1d1e21;
+  --text-muted: #5d6068;
+  --border: #e3e3e7;
+  --border-strong: #6b6e76;
+  --accent: #2c5f9e;
+  --on-accent: #ffffff;
+  --control: #2c5f9e;
+  --link: #2c5f9e;
+  --danger: #b3382c;
+  --focus: #2c5f9e;
+  --signal-a: #2c5f9e;
+  --identity-1: #2f6d5b;
+  --identity-2: #b0503a;
+  --identity-3: #3e4c7a;
+  --identity-4: #6b4a6e;
+  --identity-5: #8a6d2f;
+  --on-identity: #ffffff;
+  --field-border: #c9cad0;
+}
+
+[data-theme="plain"][data-mode="dark"] {
+  color-scheme: dark;
+  --bg: #202124;
+  --bg-sunk: #1a1b1d;
+  --surface: #27282b;
+  --tint: #303136;
+  --text: #e9e9ec;
+  --text-muted: #a4a6ad;
+  --border: #38393e;
+  --border-strong: #8d9097;
+  --accent: #86aee6;
+  --on-accent: #0e1a2c;
+  --control: #86aee6;
+  --link: #86aee6;
+  --danger: #f08b7e;
+  --focus: #86aee6;
+  --signal-a: #86aee6;
+  --identity-1: #62b49b;
+  --identity-2: #e58b72;
+  --identity-3: #9aa8dc;
+  --identity-4: #bf9bc3;
+  --identity-5: #cfac61;
+  --on-identity: #17181a;
+  --field-border: #4a4c52;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-lift: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-composer: 0 2px 16px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.55);
+}

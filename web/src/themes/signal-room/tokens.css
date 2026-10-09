@@ -1,0 +1,62 @@
+/* Signal Room: PRD sections 20.2 to 20.8. Light mode matches the original
+   look value for value. Dark mode is warm charcoal, opt-in (PRD 20.3). */
+
+[data-theme="signal-room"] {
+  --font-display: "Fraunces Variable", "Fraunces", ui-serif, serif;
+  --font-ui: "Hanken Grotesk Variable", "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Spline Sans Mono Variable", "Spline Sans Mono", ui-monospace, monospace;
+}
+
+[data-theme="signal-room"][data-mode="light"] {
+  color-scheme: light;
+  --bg: #fbfaf6;
+  --bg-sunk: #f1efe8;
+  --surface: #fbfaf6;
+  --tint: #f1efe8;
+  --text: #1b211e;
+  --text-muted: #6b6a61;
+  --border: #e0dcd1;
+  --border-strong: #1b211e;
+  --accent: #e4952b;
+  --on-accent: #1b211e;
+  --control: #2f6d5b;
+  --link: #3e4c7a;
+  --danger: #b7543b;
+  --focus: #e4952b;
+  --signal-a: #e4952b;
+  --identity-1: #2f6d5b;
+  --identity-2: #b7543b;
+  --identity-3: #3e4c7a;
+  --identity-4: #6b4a6e;
+  --identity-5: #8a6d2f;
+  --on-identity: #fbfaf6;
+}
+
+[data-theme="signal-room"][data-mode="dark"] {
+  color-scheme: dark;
+  --bg: #1c1e1b;
+  --bg-sunk: #151714;
+  --surface: #242723;
+  --tint: #242723;
+  --text: #ece9df;
+  --text-muted: #a3a195;
+  --border: #363a33;
+  --border-strong: #ece9df;
+  --accent: #e4952b;
+  --on-accent: #1b211e;
+  --control: #62b49b;
+  --link: #a3b0e0;
+  --danger: #ea8a70;
+  --focus: #e4952b;
+  --signal-a: #e4952b;
+  --identity-1: #62b49b;
+  --identity-2: #e58b72;
+  --identity-3: #9aa8dc;
+  --identity-4: #bf9bc3;
+  --identity-5: #cfac61;
+  --on-identity: #151714;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lift: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.55);
+}

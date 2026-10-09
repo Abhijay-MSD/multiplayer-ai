@@ -1,0 +1,166 @@
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--bg);
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+.signal {
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: 500;
+}
+
+.subtitle {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.label {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.field {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--field-radius);
+  background: var(--field-bg);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+  resize: vertical;
+  transition: border-color var(--duration-standard) var(--ease-standard),
+    box-shadow var(--duration-standard) var(--ease-standard);
+}
+
+.field:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.field[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.failure {
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+}
+
+.failureTitle {
+  color: var(--danger);
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.failureBody {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.button {
+  align-self: flex-start;
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.button:not(:disabled) {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.button:not(:disabled):hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+
+.button:not(:disabled):focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  background: var(--bg-sunk);
+  color: var(--text-muted);
+  border-color: var(--border);
+  cursor: default;
+}
+
+.footnote {
+  margin: var(--space-3) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.footnote a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Ideas to start from: quiet buttons under the task box. */
+.starters {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.startersLabel {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.starter {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-sm);
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.starter:hover {
+  border-color: var(--border-strong);
+  background: var(--hover-bg);
+}

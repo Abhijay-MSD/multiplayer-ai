@@ -1,0 +1,296 @@
+/* PRD 21: three-region session room. No competing global nav; the live
+   content is the interface. Themes rearrange the regions in structure.css
+   through the data-part hooks (desktop only: scope those rules to
+   min-width: 721px so the phone layout below stays intact). */
+.room {
+  --rail-col: var(--rail-width);
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr var(--rail-col);
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "top top"
+    "transcript rail"
+    "bottom bottom";
+  background: var(--bg);
+}
+
+/* A theme that lets the rail collapse: closed leaves no column. */
+.room[data-collapsible="true"][data-rail="closed"] {
+  --rail-col: 0px;
+}
+
+.room[data-collapsible="true"][data-rail="closed"] .rail {
+  visibility: hidden;
+}
+
+.top {
+  grid-area: top;
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.signalSlot {
+  min-width: 0;
+}
+
+.headRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.titleBlock {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Display face for the room's headline: PRD 20.4 differentiates this from
+   every other label on the page, which stay in the UI face. */
+.title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.copyLink {
+  flex-shrink: 0;
+  height: var(--control-height);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 var(--space-5);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  white-space: nowrap;
+  transition: border-color var(--duration-standard) var(--ease-standard),
+    background-color var(--duration-standard) var(--ease-standard),
+    transform var(--duration-standard) var(--ease-standard);
+}
+
+.copyLink:hover {
+  border-color: var(--border-strong);
+  background: var(--hover-bg);
+  transform: translateY(-1px);
+}
+
+.copyLink:active {
+  transform: translateY(0);
+}
+
+.hostButton {
+  composes: copyLink;
+}
+
+a.hostButton {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.copyLinkCopied {
+  border-color: var(--control);
+  color: var(--control);
+  background: var(--control-soft);
+}
+
+/* Opens and closes the people rail. A drawer toggle on phones, and on
+   desktop only in themes whose rail collapses. */
+.railToggle {
+  display: none;
+  flex-shrink: 0;
+  height: var(--control-height);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.railToggle:hover,
+.railToggle[aria-expanded="true"] {
+  border-color: var(--border-strong);
+  background: var(--hover-bg);
+}
+
+.room[data-collapsible="true"] .railToggle {
+  display: inline-flex;
+  align-items: center;
+}
+
+.transcriptArea {
+  grid-area: transcript;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rail {
+  grid-area: rail;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.bottom {
+  grid-area: bottom;
+  min-width: 0;
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--scrim);
+  cursor: default;
+}
+
+/* Phones: one column; the rail becomes a drawer. */
+@media (max-width: 720px) {
+  .room {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "top"
+      "transcript"
+      "bottom";
+  }
+
+  .top {
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .headRow {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .titleBlock {
+    flex: 1 1 100%;
+    order: 0;
+  }
+
+  /* The full task is in the drawer's room details. */
+  .task {
+    display: none;
+  }
+
+  .railToggle {
+    display: inline-flex;
+    align-items: center;
+    order: 1;
+  }
+
+  .actions {
+    order: 2;
+    margin-left: auto;
+    gap: var(--space-2);
+    /* With the host's button there may be too many to fit beside People; they wrap rather than push the page wide. */
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .copyLink {
+    padding: 0 var(--space-4);
+  }
+
+  /* The host's button sits beside Copy link; on a narrow screen it gives up some padding so the header still fits. */
+  .hostButton {
+    padding: 0 var(--space-3);
+  }
+
+  .rail {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 31;
+    width: min(320px, 88vw);
+    border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-pop);
+    overflow-y: auto;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform var(--duration-slow) var(--ease-standard),
+      visibility 0s linear var(--duration-slow);
+  }
+
+  .room[data-rail="open"] .rail {
+    transform: none;
+    visibility: visible;
+    transition: transform var(--duration-slow) var(--ease-standard);
+  }
+}
+
+/* Embedded: a room inside a frame on another page (the landing page replay).
+   It fills its container, and its drawer stays inside it. */
+.room[data-embedded="true"] {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  --signal-height: 36px;
+  --signal-label-size: var(--text-sm);
+  --rail-width: 220px;
+}
+
+.room[data-embedded="true"] .top {
+  padding: var(--space-4) var(--space-5);
+  gap: var(--space-2);
+}
+
+.room[data-embedded="true"] .title {
+  font-size: var(--text-lg);
+}
+
+.room[data-embedded="true"] [data-part="transcript"] {
+  padding-top: var(--space-5);
+}
+
+@media (max-width: 720px) {
+  .room[data-embedded="true"] .rail,
+  .room[data-embedded="true"] .scrim {
+    position: absolute;
+  }
+}
+
+/* Where the composer would be, in a room that can be read but not posted to. */
+.notice {
+  margin: 0;
+  padding: var(--space-4) var(--space-6);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  text-align: center;
+}

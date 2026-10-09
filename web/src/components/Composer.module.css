@@ -1,0 +1,315 @@
+/* Flat color only, no gradient, no glow. The accent is reserved for agent
+   mode; comment mode is text on the page background. Themes reshape this bar
+   in their structure.css through the data-part hooks. */
+.bar {
+  border-top: 1px solid var(--border);
+  padding: var(--space-4) var(--space-6) var(--space-5);
+  background: var(--bg);
+  transition: border-color var(--duration-standard) var(--ease-standard);
+}
+
+.barAgent {
+  border-top: 3px solid var(--accent);
+}
+
+.barComment {
+  border-top: 1px solid var(--border);
+}
+
+.modes {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.mode {
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-4);
+  transition: background var(--duration-standard) var(--ease-standard),
+    color var(--duration-standard) var(--ease-standard),
+    border-color var(--duration-standard) var(--ease-standard);
+}
+
+.mode:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.modeAgentOn,
+.modeAgentOn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.modeCommentOn,
+.modeCommentOn:hover {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+
+.modeHint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-left: var(--space-2);
+}
+
+.hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.takeLink {
+  font: inherit;
+  font-weight: 600;
+  color: var(--control);
+  background: none;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.takeLink:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  display: block;
+  resize: none;
+  overflow: hidden;
+  border: 1px solid var(--field-border);
+  border-radius: var(--field-radius);
+  padding: var(--space-4);
+  font-size: var(--text-base);
+  line-height: 1.3;
+  background: var(--field-bg);
+  transition: border-color var(--duration-standard) var(--ease-standard);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+  border-color: var(--text);
+}
+
+.inputAgent:focus-visible {
+  outline-color: var(--focus);
+  border-color: var(--accent);
+}
+
+.send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: transform var(--duration-standard) var(--ease-standard),
+    box-shadow var(--duration-standard) var(--ease-standard),
+    filter var(--duration-standard) var(--ease-standard);
+}
+
+.sendIcon {
+  display: none;
+}
+
+.sendAgent {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.sendComment {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--text);
+}
+
+.send:hover:not(:disabled) {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+
+.send:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.92);
+}
+
+.send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.error {
+  color: var(--danger);
+  font-size: var(--text-xs);
+  margin-top: var(--space-2);
+}
+
+@media (max-width: 720px) {
+  .bar {
+    padding: var(--space-3) var(--space-4) var(--space-4);
+  }
+
+  .send {
+    padding: var(--space-4);
+  }
+}
+
+/* Attaching text files: below the message box, quiet, and the whole bar is where files can be dropped. */
+.bar[data-dragging="true"] {
+  outline: 2px dashed var(--control);
+  outline-offset: -4px;
+}
+
+.attach {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.attachButton {
+  height: 28px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.attachButton:hover {
+  border-color: var(--border-strong);
+  background: var(--hover-bg);
+}
+
+.attachHint {
+  min-width: 0;
+}
+
+.attachResult {
+  flex-basis: 100%;
+}
+
+.attachResult:empty {
+  display: none;
+}
+
+.attachProblem {
+  color: var(--danger);
+}
+
+.rename {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.renameRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.renameField {
+  flex: 1 1 200px;
+  min-width: 0;
+  height: 28px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+/* Stop: shown only while the agent is working, to the controller and the host. */
+.stopRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.stopButton {
+  height: 28px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--danger);
+  background: transparent;
+  white-space: nowrap;
+}
+
+.stopButton:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1px var(--danger); /* a heavier outline, not a fill: the danger colour has to keep its contrast */
+}
+
+.stopButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* "Send my last message again", in the controller's row of choices. */
+.retry {
+  margin-left: auto;
+  height: 28px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  white-space: nowrap;
+}
+
+.retry:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--hover-bg);
+}
+
+.retry:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

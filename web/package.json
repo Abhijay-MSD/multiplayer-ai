@@ -1,0 +1,41 @@
+{
+  "name": "multiplayer-ai-web",
+  "private": true,
+  "version": "0.2.0",
+  "author": "Abhijay Arun",
+  "homepage": "https://github.com/Abhijay-MSD/multiplayer-ai#readme",
+  "bugs": {
+    "url": "https://github.com/Abhijay-MSD/multiplayer-ai/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abhijay-MSD/multiplayer-ai.git",
+    "directory": "web"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check:copy": "node ../scripts/check-copy.mjs",
+    "check:contrast": "node ../scripts/check-contrast.mjs",
+    "test:e2e": "npm --prefix qa test",
+    "qa:marketing-shots": "npm --prefix qa run marketing-shots",
+    "qa:update-screenshots": "npm --prefix qa run update-screenshots"
+  },
+  "dependencies": {
+    "@fontsource-variable/figtree": "5.3.0",
+    "@fontsource-variable/fraunces": "5.3.0",
+    "@fontsource-variable/hanken-grotesk": "5.3.0",
+    "@fontsource-variable/newsreader": "5.3.0",
+    "@fontsource-variable/plus-jakarta-sans": "5.3.0",
+    "@fontsource-variable/source-sans-3": "5.3.0",
+    "@fontsource-variable/spline-sans-mono": "5.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.0"
+  }
+}

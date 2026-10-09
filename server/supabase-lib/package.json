@@ -1,0 +1,20 @@
+{
+  "name": "multiplayer-ai-supabase-lib",
+  "private": true,
+  "version": "0.2.0",
+  "author": "Abhijay Arun",
+  "homepage": "https://github.com/Abhijay-MSD/multiplayer-ai#readme",
+  "bugs": {
+    "url": "https://github.com/Abhijay-MSD/multiplayer-ai/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abhijay-MSD/multiplayer-ai.git",
+    "directory": "server/supabase-lib"
+  },
+  "description": "The Supabase client library, installed only by people who use MULTIPLAYER_AI_STORE=supabase. Kept out of server/ so the default install does not include it.",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.0"
+  }
+}

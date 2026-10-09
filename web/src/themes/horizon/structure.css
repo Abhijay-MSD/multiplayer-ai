@@ -1,0 +1,235 @@
+/* Horizon: an airy header, a rail that floats as a rounded panel, and a tall
+   rounded composer with the two modes as small chips underneath it. */
+
+@media (min-width: 721px) {
+  [data-theme="horizon"] [data-part="room"] {
+    grid-template-areas:
+      "top top"
+      "transcript rail"
+      "bottom rail";
+  }
+
+  [data-theme="horizon"] [data-part="header"] {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-5) var(--space-7);
+    border-bottom: 0;
+  }
+
+  [data-theme="horizon"] [data-part="head-row"] {
+    display: contents;
+  }
+
+  [data-theme="horizon"] [data-part="rail-toggle"] { order: 1; }
+  [data-theme="horizon"] [data-part="title-block"] { order: 2; }
+  [data-theme="horizon"] [data-part="signal-slot"] { order: 3; width: 220px; flex-shrink: 0; }
+  [data-theme="horizon"] [data-part="header-actions"] { order: 4; }
+
+  [data-theme="horizon"] [data-part="title"] {
+    font-size: var(--text-xl);
+  }
+
+  [data-theme="horizon"] [data-part="signal"] {
+    gap: 2px;
+  }
+
+  [data-theme="horizon"] [data-part="signal-label"] {
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  /* The rail is a floating panel, not a column with a rule. */
+  [data-theme="horizon"] [data-part="rail"] {
+    margin: 0 var(--space-5) var(--space-5) 0;
+    background: var(--surface);
+    border-radius: 28px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border);
+  }
+
+  [data-theme="horizon"] [data-part="presence"] {
+    border-left: 0;
+    padding: var(--space-6) var(--space-5);
+  }
+
+  [data-theme="horizon"] [data-part="room"][data-rail="closed"] [data-part="rail"] {
+    margin: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  [data-theme="horizon"] [data-part="transcript"] {
+    padding-top: var(--space-5);
+  }
+}
+
+[data-theme="horizon"] [data-part="signal-label"] {
+  font-weight: 500;
+}
+
+[data-theme="horizon"] [data-part="signal"][data-state="limit"] [data-part="signal-label"],
+[data-theme="horizon"] [data-part="signal"][data-state="error"] [data-part="signal-label"] {
+  color: var(--danger);
+}
+
+/* Transcript: layers with soft edges. */
+[data-theme="horizon"] [data-part="agent-body"] {
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+}
+
+[data-theme="horizon"] [data-part="reply-to"] {
+  padding-left: var(--space-2);
+}
+
+[data-theme="horizon"] [data-part="empty"] {
+  padding: 14vh 0 var(--space-6);
+  text-align: center;
+}
+
+[data-theme="horizon"] [data-part="empty-title"] {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  color: var(--text);
+}
+
+/* Composer: the field is the rounded box; the modes sit beneath as chips. */
+[data-theme="horizon"] [data-part="composer-area"] {
+  padding: 0 var(--stage-pad-x) var(--space-5);
+  background: var(--bg);
+}
+
+[data-theme="horizon"] [data-part="composer"] {
+  max-width: 46rem;
+  margin-inline: auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  border: 0;
+}
+
+[data-theme="horizon"] [data-part="composer-field"] {
+  order: 1;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--field-border);
+  border-radius: 30px;
+  box-shadow: var(--shadow-composer);
+}
+
+[data-theme="horizon"] [data-part="composer"]:focus-within [data-part="composer-field"] {
+  border-color: var(--accent);
+}
+
+[data-theme="horizon"] [data-part="composer"][data-target="comment"]:focus-within [data-part="composer-field"] {
+  border-color: var(--border-strong);
+}
+
+[data-theme="horizon"] [data-part="composer"] textarea {
+  min-height: 56px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: var(--space-2) 0;
+  font-size: var(--text-base);
+}
+
+[data-theme="horizon"] [data-part="composer"] textarea:focus-visible {
+  outline: none;
+  border: 0;
+}
+
+[data-theme="horizon"] [data-part="send"] {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+}
+
+[data-theme="horizon"] [data-part="composer"][data-target="comment"] [data-part="send"] {
+  background: var(--tint);
+  color: var(--text);
+}
+
+[data-theme="horizon"] [data-part="send"]:not(:disabled):hover {
+  transform: none;
+  box-shadow: none;
+}
+
+[data-theme="horizon"] [data-part="send-icon"] {
+  display: block;
+}
+
+[data-theme="horizon"] [data-part="send-label"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+[data-theme="horizon"] [data-part="composer-modes"],
+[data-theme="horizon"] [data-part="composer-hint"] {
+  order: 2;
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-2);
+  gap: var(--space-2);
+}
+
+[data-theme="horizon"] [data-part="composer-hint"] {
+  font-size: var(--text-xs);
+}
+
+[data-theme="horizon"] [data-part="composer-modes"] [role="radio"] {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+[data-theme="horizon"] [data-part="composer-modes"] [role="radio"]:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+[data-theme="horizon"] [data-part="composer-modes"] [role="radio"][aria-checked="true"][data-choice="comment"] {
+  background: var(--tint);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+[data-theme="horizon"] [data-part="composer-modes"] [role="radio"][aria-checked="true"][data-choice="agent"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Name capture */
+[data-theme="horizon"] [data-part="name-card"] {
+  max-width: 440px;
+}
+
+[data-theme="horizon"] [data-part="name-field"] {
+  border-radius: var(--radius-pill);
+  padding: 16px 24px;
+  border-color: var(--field-border);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+[data-theme="horizon"] [data-part="name-card"] button {
+  border-radius: var(--radius-pill);
+  padding: 13px 28px;
+}

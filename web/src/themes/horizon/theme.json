@@ -1,0 +1,13 @@
+{
+  "id": "horizon",
+  "label": "Horizon",
+  "blurb": "Bright and airy. Soft layers, large corners.",
+  "order": 3,
+  "signal": "softwave",
+  "railCollapsible": true,
+  "fonts": {
+    "families": [
+      "Plus Jakarta Sans Variable"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "multiplayer-ai-server",
+  "version": "0.2.0",
+  "author": "Abhijay Arun",
+  "homepage": "https://github.com/Abhijay-MSD/multiplayer-ai#readme",
+  "bugs": {
+    "url": "https://github.com/Abhijay-MSD/multiplayer-ai/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abhijay-MSD/multiplayer-ai.git",
+    "directory": "server"
+  },
+  "description": "Multiplayer AI MCP server and agent orchestrator",
+  "type": "module",
+  "scripts": {
+    "start": "node local.js",
+    "dev": "node --watch local.js",
+    "test": "node --test \"test/**/*.test.js\"",
+    "mcp": "node server.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@modelcontextprotocol/sdk": "^1.10.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.0",
+    "qrcode-generator": "2.0.4",
+    "zod": "^3.23.8"
+  },
+  "engines": {
+    "node": ">=22.13.0 <23 || >=23.4.0"
+  }
+}

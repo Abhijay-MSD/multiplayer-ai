@@ -1,0 +1,112 @@
+{
+  "_note": "Test data for layout and theme QA. Not a real session. last_seen values of 'NOW' and 'AWAY' are replaced at load time.",
+  "session": {
+    "id": "00000000-0000-4000-8000-000000000001",
+    "title": "Rollback plan for the billing migration",
+    "task": "Write a rollback plan for moving invoices to the new billing tables, and list what to check before cutover.",
+    "status": "active",
+    "step_count": 3,
+    "agent_working": false,
+    "created_at": "2026-10-05T09:00:00.000Z",
+    "updated_at": "2026-10-05T09:14:00.000Z"
+  },
+  "participants": [
+    {
+      "name": "Maya",
+      "role": "watcher",
+      "last_seen": "NOW"
+    },
+    {
+      "name": "Dev",
+      "role": "controller",
+      "last_seen": "NOW"
+    },
+    {
+      "name": "Priya",
+      "role": "watcher",
+      "last_seen": "AWAY"
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "kind": "join",
+      "author": "Maya",
+      "content": "Maya joined the session.",
+      "reply_to": null,
+      "created_at": "2026-10-05T09:00:05.000Z"
+    },
+    {
+      "id": 2,
+      "kind": "join",
+      "author": "Dev",
+      "content": "Dev joined the session.",
+      "reply_to": null,
+      "created_at": "2026-10-05T09:01:10.000Z"
+    },
+    {
+      "id": 3,
+      "kind": "directive",
+      "author": "Maya",
+      "content": "Start with the order of steps. Which tables do we copy first, and which can wait until after cutover?",
+      "reply_to": null,
+      "created_at": "2026-10-05T09:02:00.000Z"
+    },
+    {
+      "id": 4,
+      "kind": "agent_message",
+      "author": "Agent",
+      "content": "Copy **customers** and **plans** first. Invoices depend on both, so they go second.\n\n1. Freeze writes to `invoices_v1` for the copy window.\n2. Copy `customers`, then `plans`.\n3. Copy `invoices` in batches of 5,000 rows.\n4. Compare row counts and a checksum per batch.\n\nPayment attempts and audit logs can wait until after cutover, because nothing reads them on the invoice path.",
+      "reply_to": 3,
+      "created_at": "2026-10-05T09:02:20.000Z"
+    },
+    {
+      "id": 5,
+      "kind": "comment",
+      "author": "Dev",
+      "content": "We still have the nightly export reading invoices_v1. Does that count as a reader?",
+      "reply_to": null,
+      "created_at": "2026-10-05T09:03:00.000Z"
+    },
+    {
+      "id": 6,
+      "kind": "join",
+      "author": "Priya",
+      "content": "Priya joined the session.",
+      "reply_to": null,
+      "created_at": "2026-10-05T09:04:00.000Z"
+    },
+    {
+      "id": 7,
+      "kind": "directive",
+      "author": "Maya",
+      "content": "Dev has a point about the nightly export. Add it to the checklist, then write the rollback steps.",
+      "reply_to": null,
+      "created_at": "2026-10-05T09:05:00.000Z"
+    },
+    {
+      "id": 8,
+      "kind": "agent_message",
+      "author": "Agent",
+      "content": "Added the nightly export as a reader of `invoices_v1`. Pause it before the freeze and restart it against the new tables.\n\nRollback, if a checksum fails:\n\n```\nUPDATE feature_flags SET enabled = false WHERE name = 'billing_v2';\nTRUNCATE invoices_v2;\n```\n\nThen unfreeze `invoices_v1` and re-run the export. Nothing in `invoices_v1` was changed, so no data needs restoring.",
+      "reply_to": 7,
+      "created_at": "2026-10-05T09:05:30.000Z"
+    },
+    {
+      "id": 9,
+      "kind": "takeover",
+      "author": "Dev",
+      "content": "Dev took control.",
+      "reply_to": null,
+      "created_at": "2026-10-05T09:08:00.000Z"
+    },
+    {
+      "id": 10,
+      "kind": "comment",
+      "author": "Maya",
+      "content": "Good, I will check the checksum job while you drive.",
+      "reply_to": null,
+      "created_at": "2026-10-05T09:08:30.000Z"
+    }
+  ]
+}

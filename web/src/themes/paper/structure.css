@@ -1,0 +1,186 @@
+/* Paper: a reading column, a quiet right rail, a header with a thin breathing
+   line, and a rounded card for the composer with labeled tabs for its modes. */
+
+@media (min-width: 721px) {
+  /* The rail runs the full height beside the reading column and the composer. */
+  [data-theme="paper"] [data-part="room"] {
+    grid-template-areas:
+      "top top"
+      "transcript rail"
+      "bottom rail";
+  }
+
+  [data-theme="paper"] [data-part="header"] {
+    padding: var(--space-4) var(--space-6) var(--space-5);
+    gap: var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  [data-theme="paper"] [data-part="rail"] {
+    background: var(--bg-sunk);
+  }
+
+  [data-theme="paper"] [data-part="presence"] {
+    border-left: 0;
+    padding: var(--space-6) var(--space-5);
+  }
+
+  [data-theme="paper"] [data-part="room"][data-rail="closed"] [data-part="rail"] {
+    padding: 0;
+  }
+}
+
+[data-theme="paper"] [data-part="signal"] {
+  flex-direction: row;
+  gap: var(--space-4);
+}
+
+[data-theme="paper"] [data-part="signal-graphic"] {
+  flex: 1;
+  min-width: 0;
+}
+
+[data-theme="paper"] [data-part="signal-label"] {
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+[data-theme="paper"] [data-part="signal"][data-state="limit"] [data-part="signal-label"],
+[data-theme="paper"] [data-part="signal"][data-state="error"] [data-part="signal-label"] {
+  color: var(--danger);
+}
+
+[data-theme="paper"] [data-part="title"] {
+  font-size: var(--text-xl);
+}
+
+[data-theme="paper"] [data-part="task"] {
+  font-size: var(--text-sm);
+}
+
+/* Composer: a card on the page, not a bar across it. */
+[data-theme="paper"] [data-part="composer-area"] {
+  padding: 0 var(--stage-pad-x) var(--space-5);
+  background: var(--bg);
+}
+
+[data-theme="paper"] [data-part="composer"] {
+  max-width: 44rem;
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-composer);
+}
+
+[data-theme="paper"] [data-part="composer"]:focus-within {
+  border-color: var(--accent);
+}
+
+[data-theme="paper"] [data-part="composer"][data-target="comment"]:focus-within {
+  border-color: var(--border-strong);
+}
+
+/* Mode tabs: text with an underline, in place of buttons. */
+[data-theme="paper"] [data-part="composer-modes"] {
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+[data-theme="paper"] [data-part="composer-modes"] [role="radio"] {
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+[data-theme="paper"] [data-part="composer-modes"] [role="radio"]:hover {
+  color: var(--text);
+}
+
+[data-theme="paper"] [data-part="composer-modes"] [role="radio"][aria-checked="true"] {
+  color: var(--text);
+  background: transparent;
+}
+
+[data-theme="paper"] [data-part="composer-modes"] [role="radio"][aria-checked="true"][data-choice="agent"] {
+  border-bottom-color: var(--accent);
+}
+
+[data-theme="paper"] [data-part="composer-modes"] [role="radio"][aria-checked="true"][data-choice="comment"] {
+  border-bottom-color: var(--text);
+}
+
+[data-theme="paper"] [data-part="composer-mode-hint"] {
+  margin-left: auto;
+}
+
+[data-theme="paper"] [data-part="composer-field"] {
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+[data-theme="paper"] [data-part="composer"] textarea {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: var(--space-2) 0;
+  font-size: var(--text-base);
+}
+
+[data-theme="paper"] [data-part="composer"] textarea:focus-visible {
+  outline: none;
+  border: 0;
+}
+
+[data-theme="paper"] [data-part="send"] {
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: var(--text-sm);
+}
+
+[data-theme="paper"] [data-part="composer"][data-target="comment"] [data-part="send"] {
+  border-color: var(--border-strong);
+  background: transparent;
+}
+
+[data-theme="paper"] [data-part="send"]:not(:disabled):hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Transcript */
+[data-theme="paper"] [data-part="reply-to"] {
+  border-left: 2px solid var(--border);
+  padding-left: var(--space-3);
+}
+
+[data-theme="paper"] [data-kind="agent"] [data-part="meta"] {
+  margin-bottom: var(--space-3);
+}
+
+/* Code is a guest in the serif column: a little smaller than the text. */
+[data-theme="paper"] [data-part="agent-body"] code {
+  font-size: 0.8em;
+}
+
+[data-theme="paper"] [data-part="agent-body"] pre code {
+  font-size: 0.78em;
+}
+
+/* Name capture */
+[data-theme="paper"] [data-part="name-field"] {
+  border-radius: 12px;
+  border-color: var(--field-border);
+  background: var(--surface);
+}
+
+[data-theme="paper"] [data-part="name-card"] button {
+  border-radius: 12px;
+}

@@ -1,0 +1,13 @@
+{
+  "id": "plain",
+  "label": "Plain",
+  "blurb": "Neutral and familiar. One centered column.",
+  "order": 1,
+  "signal": "dots",
+  "railCollapsible": true,
+  "fonts": {
+    "families": [
+      "Figtree Variable"
+    ]
+  }
+}

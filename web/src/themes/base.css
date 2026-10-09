@@ -1,0 +1,106 @@
+/* Shared, theme-independent tokens and the defaults every theme inherits.
+   A theme overrides only what it wants to change (see docs/themes.md).
+
+   Derived defaults are declared on `[data-theme]` as well as `:root`, so they
+   are recomputed against each theme's own colors (a swatch element carrying
+   its own data-theme gets its own values, not the page's). */
+
+:root {
+  /* Type scale: 13 / 15 / 17 / 21 / 27 / 36 / 52 / 72 (PRD 20.4) */
+  --text-xs: 13px;
+  --text-sm: 15px;
+  --text-base: 17px;
+  --text-lg: 21px;
+  --text-xl: 27px;
+  --text-2xl: 36px;
+  --text-3xl: 52px;
+  --text-4xl: 72px;
+  --measure: 68ch;
+
+  /* Spacing (PRD 20.5) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* Motion (PRD 20.6) */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-standard: 160ms;
+  --duration-slow: 280ms;
+}
+
+:root,
+[data-theme] {
+  /* Radius */
+  --radius-xs: 3px;
+  --radius: 6px;
+  --radius-input: 2px;
+  --radius-pill: 999px;
+  --control-height: 43px; /* header buttons: copy link, theme, people */
+
+  /* Type roles. Themes set --font-ui, --font-display, --font-mono. */
+  --font-agent: var(--font-mono);
+  --display-weight: 500;
+  --display-tracking: -0.01em;
+
+  /* Page layout */
+  --rail-width: 300px;
+  --stage-max: none;
+  --stage-pad-x: var(--space-6);
+  --entry-gap: var(--space-6);
+  --entry-max: var(--measure);
+
+  /* Transcript: agent replies, the controller's messages, comments */
+  --agent-fg: var(--text);
+  --agent-bg: var(--bg-sunk);
+  --agent-size: var(--text-sm);
+  --agent-leading: 1.65;
+  --agent-pad: var(--space-5);
+  --agent-radius: var(--radius);
+
+  --directive-fg: var(--text);
+  --directive-bg: transparent;
+  --directive-size: var(--text-base);
+  --directive-pad: 0;
+  --directive-radius: 0;
+  --directive-align: stretch;
+  --bubble-max: 100%;
+
+  --comment-fg: var(--text-muted);
+  --comment-bg: transparent;
+  --comment-pad: 0 0 0 var(--space-3); /* around the whole comment */
+  --comment-body-pad: 0; /* inside the text box */
+  --comment-radius: 0;
+  --comment-rule: 1px solid var(--border);
+  --comment-align: stretch;
+  --comment-pull: calc(-1 * var(--space-3));
+
+  --code-bg: color-mix(in srgb, var(--text) 7%, transparent);
+  --code-block-bg: color-mix(in srgb, var(--text) 6%, var(--bg-sunk));
+
+  /* Surfaces and controls */
+  --hover-bg: var(--bg-sunk);
+  --control-soft: color-mix(in srgb, var(--control) 8%, var(--bg));
+  --field-bg: var(--bg);
+  --field-border: var(--border);
+  --field-radius: var(--radius-input);
+  --selection: color-mix(in srgb, var(--accent) 30%, transparent);
+  --scrim: rgba(20, 22, 20, 0.45);
+
+  /* Live signal. --signal-a is the running color, --signal-b the second
+     gradient stop for themes that use one. Stopped states use --danger. */
+  --signal-b: var(--signal-a);
+  --signal-height: 56px;
+  --signal-label-size: var(--text-lg);
+
+  /* Elevation */
+  --shadow-soft: 0 2px 8px rgba(27, 33, 30, 0.08);
+  --shadow-lift: 0 4px 14px rgba(27, 33, 30, 0.12);
+  --shadow-composer: none;
+  --shadow-pop: 0 10px 30px rgba(27, 33, 30, 0.18);
+}

@@ -1,0 +1,228 @@
+/* Plain: a centered column, a collapsible left rail, a slim header, and a
+   rounded composer floating near the bottom with a round send button. */
+
+@media (min-width: 721px) {
+  [data-theme="plain"] [data-part="room"] {
+    --rail-col: var(--rail-width);
+    grid-template-columns: var(--rail-col) 1fr;
+    grid-template-areas:
+      "top top"
+      "rail transcript"
+      "rail bottom";
+  }
+
+  [data-theme="plain"] [data-part="room"][data-rail="closed"] {
+    --rail-col: 0px;
+  }
+
+  /* Slim header: People, title, signal, theme, copy link, in one row. */
+  [data-theme="plain"] [data-part="header"] {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-5);
+  }
+
+  [data-theme="plain"] [data-part="head-row"] {
+    display: contents;
+  }
+
+  [data-theme="plain"] [data-part="rail-toggle"] { order: 1; }
+  [data-theme="plain"] [data-part="title-block"] { order: 2; }
+  [data-theme="plain"] [data-part="signal-slot"] { order: 3; width: 190px; flex-shrink: 0; }
+  [data-theme="plain"] [data-part="header-actions"] { order: 4; }
+
+  [data-theme="plain"] [data-part="title"] {
+    font-size: var(--text-base);
+  }
+
+  [data-theme="plain"] [data-part="signal"] {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--space-3);
+  }
+
+  [data-theme="plain"] [data-part="signal-label"] {
+    font-weight: 500;
+    color: var(--text-muted);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  [data-theme="plain"] [data-part="signal"][data-state="limit"] [data-part="signal-label"],
+  [data-theme="plain"] [data-part="signal"][data-state="error"] [data-part="signal-label"] {
+    color: var(--danger);
+  }
+
+  [data-theme="plain"] [data-part="signal-graphic"] {
+    width: auto;
+    flex-shrink: 0;
+  }
+
+  /* The room's details move into the rail; the header keeps just the title. */
+  [data-theme="plain"] [data-part="task"] {
+    display: none;
+  }
+
+  [data-theme="plain"] [data-part="room-details"] {
+    display: flex;
+  }
+
+  [data-theme="plain"] [data-part="rail"] {
+    background: var(--bg-sunk);
+    border-right: 1px solid var(--border);
+    padding: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    overflow-y: auto;
+  }
+
+  [data-theme="plain"] [data-part="room"][data-rail="closed"] [data-part="rail"] {
+    border-right: 0;
+    padding: 0;
+  }
+
+  [data-theme="plain"] [data-part="presence"] {
+    border-left: 0;
+    padding: 0;
+    height: auto;
+    overflow: visible;
+  }
+}
+
+/* The composer floats: no top rule, a rounded box with its own shadow. */
+[data-theme="plain"] [data-part="composer-area"] {
+  padding: 0 var(--stage-pad-x) var(--space-5);
+  background: var(--bg);
+}
+
+[data-theme="plain"] [data-part="composer"] {
+  max-width: 48rem;
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--field-border);
+  border-radius: 26px;
+  box-shadow: var(--shadow-composer);
+}
+
+[data-theme="plain"] [data-part="composer"]:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-composer), 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+[data-theme="plain"] [data-part="composer-modes"] {
+  margin-bottom: var(--space-2);
+  gap: var(--space-1);
+}
+
+[data-theme="plain"] [data-part="composer-modes"] [role="radio"] {
+  border-color: transparent;
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  font-size: var(--text-xs);
+}
+
+[data-theme="plain"] [data-part="composer-modes"] [role="radio"][aria-checked="true"][data-choice="comment"] {
+  background: var(--tint);
+  border-color: transparent;
+  color: var(--text);
+}
+
+[data-theme="plain"] [data-part="composer-mode-hint"] {
+  display: none;
+}
+
+[data-theme="plain"] [data-part="composer-hint"] {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-xs);
+}
+
+[data-theme="plain"] [data-part="composer-field"] {
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+[data-theme="plain"] [data-part="composer"] textarea {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 9px 4px;
+  font-size: var(--text-base);
+}
+
+[data-theme="plain"] [data-part="composer"] textarea:focus-visible {
+  outline: none;
+  border: 0;
+}
+
+[data-theme="plain"] [data-part="send"] {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+}
+
+[data-theme="plain"] [data-part="send"]:not(:disabled):hover {
+  transform: none;
+  box-shadow: none;
+}
+
+[data-theme="plain"] [data-part="composer"][data-target="comment"] [data-part="send"] {
+  background: var(--tint);
+  color: var(--text);
+}
+
+[data-theme="plain"] [data-part="send-icon"] {
+  display: block;
+}
+
+[data-theme="plain"] [data-part="send-label"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Transcript: bubbles hug the right; meta follows. */
+[data-theme="plain"] [data-kind="directive"] [data-part="meta"],
+[data-theme="plain"] [data-kind="comment"] [data-part="meta"] {
+  justify-content: flex-end;
+}
+
+[data-theme="plain"] [data-kind="directive"] [data-part="time"],
+[data-theme="plain"] [data-kind="comment"] [data-part="time"] {
+  margin-left: var(--space-2);
+}
+
+[data-theme="plain"] [data-part="reply-to"] {
+  border-left: 2px solid var(--border);
+  padding-left: var(--space-3);
+}
+
+[data-theme="plain"] [data-part="agent-body"] p,
+[data-theme="plain"] [data-part="agent-body"] li {
+  max-width: none;
+}
+
+/* Comment mode keeps a neutral ring, so the accent still means "to the agent". */
+[data-theme="plain"] [data-part="composer"][data-target="comment"]:focus-within {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-composer), 0 0 0 3px color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+/* Name capture */
+[data-theme="plain"] [data-part="name-field"] {
+  border-radius: var(--radius-pill);
+  padding: 12px 20px;
+  border-color: var(--field-border);
+}
+
+[data-theme="plain"] [data-part="name-card"] button {
+  border-radius: var(--radius-pill);
+  padding: 11px 24px;
+}

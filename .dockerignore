@@ -1,0 +1,23 @@
+# What is NOT sent to the image build. Keeps your keys and your machine's packages out of it.
+**/.git
+**/.github
+**/.claude
+**/node_modules
+**/.env
+**/.env.*
+# Multiplayer AI's own data folder, if someone keeps it inside the project: the saved key, the room secret and the rooms.
+**/settings.json
+**/instance.key
+**/multiplayer-ai.db*
+**/dist
+**/dist-qa
+**/.results
+**/test
+web/qa
+server/supabase-lib
+supabase
+docs
+*.md
+LICENSE
+**/*.log
+**/.DS_Store

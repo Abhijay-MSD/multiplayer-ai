@@ -1,0 +1,24 @@
+{
+  "name": "multiplayer-ai",
+  "private": true,
+  "version": "0.2.0",
+  "author": "Abhijay Arun",
+  "homepage": "https://github.com/Abhijay-MSD/multiplayer-ai#readme",
+  "bugs": {
+    "url": "https://github.com/Abhijay-MSD/multiplayer-ai/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abhijay-MSD/multiplayer-ai.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0 <23 || >=23.4.0"
+  },
+  "scripts": {
+    "start": "node scripts/start.mjs",
+    "build": "npm --prefix web run build",
+    "test": "npm --prefix server test",
+    "check:copy": "node scripts/check-copy.mjs"
+  }
+}

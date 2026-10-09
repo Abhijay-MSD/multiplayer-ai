@@ -1,0 +1,45 @@
+.body {
+  max-width: 46ch;
+  margin: 0 auto var(--space-5);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+}
+
+.primary {
+  display: inline-block;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.primary:hover {
+  filter: brightness(0.95);
+  box-shadow: var(--shadow-soft);
+}
+
+.primary:focus-visible,
+.quiet:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.quiet {
+  color: var(--text);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -1,0 +1,20 @@
+node_modules/
+.env
+.env.local
+*.log
+.DS_Store
+dist/
+.next/
+coverage/
+test-results/
+playwright-report/
+**/.claude/settings.local.json
+web/qa/.results/
+web/dist-qa/
+# Multiplayer AI's own data folder, if someone keeps it inside the project: the saved key, the room secret and the rooms.
+**/settings.json
+**/instance.key
+**/multiplayer-ai.db*
+
+# Claude Code keeps its local settings and notes here
+.claude/

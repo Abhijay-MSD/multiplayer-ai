@@ -1,0 +1,115 @@
+/* Paper: a warm off-white page, open serif for the agent's replies, a sans
+   for the interface, and a lake-teal accent. A warm neutral on purpose; the
+   accent is cool so the page reads as designed and not as a default.
+   Code uses the system monospace. */
+
+[data-theme="paper"] {
+  --font-ui: "Source Sans 3 Variable", "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Newsreader Variable", "Newsreader", ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-agent: var(--font-display);
+  --display-weight: 500;
+  --display-tracking: -0.005em;
+
+  --text-xs: 13.5px;
+  --text-sm: 15.5px;
+  --text-base: 17px;
+  --text-lg: 21px;
+  --text-xl: 28px;
+
+  --radius-xs: 4px;
+  --radius: 8px;
+  --radius-input: 10px;
+  --field-radius: 12px;
+
+  --stage-max: 44rem;
+  --stage-pad-x: var(--space-6);
+  --entry-gap: 28px;
+  --entry-max: 100%;
+  --rail-width: 264px;
+
+  /* Agent replies are open text on the page, in the serif. */
+  --agent-bg: transparent;
+  --agent-pad: 0;
+  --agent-radius: 0;
+  --agent-size: 19px;
+  --agent-leading: 1.7;
+
+  /* The controller's messages: a subtly tinted rounded box. */
+  --directive-bg: var(--tint);
+  --directive-pad: 12px 18px;
+  --directive-radius: 14px;
+  --directive-size: 17px;
+  --directive-align: flex-start;
+  --bubble-max: 88%;
+
+  /* Comments are margin notes: small, muted, a soft rule on the left. */
+  --comment-rule: 2px solid var(--border);
+  --comment-pad: 0 0 0 14px;
+  --comment-pull: -12px;
+
+  --signal-height: 14px;
+  --signal-label-size: 14px;
+
+  --shadow-soft: 0 1px 2px rgba(74, 58, 30, 0.08);
+  --shadow-lift: 0 3px 10px rgba(74, 58, 30, 0.12);
+  --shadow-composer: 0 8px 28px rgba(74, 58, 30, 0.1), 0 1px 3px rgba(74, 58, 30, 0.06);
+  --shadow-pop: 0 12px 34px rgba(74, 58, 30, 0.2);
+}
+
+[data-theme="paper"][data-mode="light"] {
+  color-scheme: light;
+  --bg: #f7f3ec;
+  --bg-sunk: #eee8dc;
+  --surface: #fdfbf7;
+  --tint: #e3ebed;
+  --text: #25221d;
+  --text-muted: #62594d;
+  --border: #ddd5c5;
+  --border-strong: #7a7364;
+  --accent: #2a6178;
+  --on-accent: #ffffff;
+  --control: #2a6178;
+  --link: #2a6178;
+  --danger: #9c3434;
+  --focus: #2a6178;
+  --signal-a: #2a6178;
+  --identity-1: #2f6d5b;
+  --identity-2: #a03f56;
+  --identity-3: #3e4c7a;
+  --identity-4: #6b4a6e;
+  --identity-5: #7d6226;
+  --on-identity: #fdfbf7;
+  --field-border: #cdc4b2;
+}
+
+[data-theme="paper"][data-mode="dark"] {
+  color-scheme: dark;
+  --bg: #1f1d1a;
+  --bg-sunk: #181613;
+  --surface: #292622;
+  --tint: #26363a;
+  --text: #ece6da;
+  --text-muted: #a9a091;
+  --border: #3b372f;
+  --border-strong: #9b9382;
+  --accent: #7fb6cf;
+  --on-accent: #0c2230;
+  --control: #7fb6cf;
+  --link: #7fb6cf;
+  --danger: #e58a86;
+  --focus: #7fb6cf;
+  --signal-a: #7fb6cf;
+  --identity-1: #62b49b;
+  --identity-2: #e08aa0;
+  --identity-3: #9aa8dc;
+  --identity-4: #bf9bc3;
+  --identity-5: #cfac61;
+  --on-identity: #17140f;
+  --field-border: #4a463d;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-lift: 0 3px 10px rgba(0, 0, 0, 0.45);
+  --shadow-composer: 0 8px 28px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-pop: 0 12px 34px rgba(0, 0, 0, 0.55);
+}

@@ -1,0 +1,14 @@
+{
+  "id": "paper",
+  "label": "Paper",
+  "blurb": "Warm and quiet. Made for reading.",
+  "order": 2,
+  "signal": "line",
+  "railCollapsible": true,
+  "fonts": {
+    "families": [
+      "Newsreader Variable",
+      "Source Sans 3 Variable"
+    ]
+  }
+}

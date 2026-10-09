@@ -1,0 +1,25 @@
+{
+  "name": "multiplayer-ai-web-qa",
+  "private": true,
+  "version": "0.2.0",
+  "author": "Abhijay Arun",
+  "homepage": "https://github.com/Abhijay-MSD/multiplayer-ai#readme",
+  "bugs": {
+    "url": "https://github.com/Abhijay-MSD/multiplayer-ai/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abhijay-MSD/multiplayer-ai.git",
+    "directory": "web/qa"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "marketing-shots": "node marketing-shots.mjs",
+    "update-screenshots": "node update-screenshots.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0"
+  }
+}

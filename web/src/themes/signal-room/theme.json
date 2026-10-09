@@ -1,0 +1,15 @@
+{
+  "id": "signal-room",
+  "label": "Signal Room",
+  "blurb": "Warm and studio-like. The default.",
+  "order": 0,
+  "signal": "wave",
+  "railCollapsible": false,
+  "fonts": {
+    "families": [
+      "Fraunces Variable",
+      "Hanken Grotesk Variable",
+      "Spline Sans Mono Variable"
+    ]
+  }
+}

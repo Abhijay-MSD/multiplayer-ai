@@ -1,0 +1,7 @@
+{
+  "about": "Files that may name AI providers, because choosing a provider means seeing its name. Exact paths only. Only provider names are excused here; banned phrases are still checked. See scripts/check-copy.mjs.",
+  "provider_names": [
+    "web/src/lib/providers.js",
+    "docs/providers.md"
+  ]
+}
