@@ -23,7 +23,7 @@ npm run check:copy                                                              
 node scripts/scan-secrets.mjs                                                          # anything shaped like a key, in files, history and the built app
 ```
 
-`.github/workflows/ci.yml` runs the same steps on Linux and macOS, on Node 22.13.0 and 24. It has not been run on GitHub yet; it says so at the top. `.github/dependabot.yml` asks for weekly update pull requests; it has not been used yet.
+`.github/workflows/ci.yml` runs on every pull request and on pushes to main, in two jobs that do not wait for each other. The checks job runs the server tests on Node 22.13.0 and 24, and on 24 also the copy check, the build, the secrets scan and the audit. The browser job runs the browser tests once on Linux and once on macOS, on Node 24, and keeps `web/qa/.results` for 7 days when they fail. CI has not passed yet: its first run failed in the browser tests, and the changed workflow has not run on GitHub; the file says so at the top. `.github/dependabot.yml` asks for weekly update pull requests; it has not been used yet.
 
 ## How changes are made here
 

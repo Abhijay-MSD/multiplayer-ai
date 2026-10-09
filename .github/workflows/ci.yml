@@ -1,11 +1,15 @@
-# NOT RUN. This workflow has never been executed on GitHub Actions. Every step was run by hand in a fresh clone on a Mac
-# (Node 24), and the server tests and a build were also run in Linux containers on Node 22.13.0, 22.23.3 and 24. The action
-# versions below are tags, not commit SHAs, and were not checked against GitHub. Expect to fix something the first time it
-# runs. When it has run green once, delete this note.
+# NOT PASSED YET. This workflow has run on GitHub once: install, build and the server tests passed, and the browser tests failed, so the steps
+# after them never ran. The browser tests, the checks and the dependency file were changed after that run and have not run on GitHub since.
+# The action versions below are tags, not commit SHAs, and were not checked against GitHub (actions/upload-artifact has not run at all).
+# When it has passed once, delete this note.
+#
+# Two jobs, and neither waits for the other: the cheap checks (server tests, copy check, build, secrets scan, audit) and the browser tests.
+# A browser test that fails, or flakes, cannot hide a check, and the other way round.
 name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
@@ -16,14 +20,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check:
-    name: ${{ matrix.os }}, Node ${{ matrix.node }}
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+  checks:
+    name: Checks, Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
         node: ["22.13.0", "24"]
     steps:
       - uses: actions/checkout@v4
@@ -34,17 +37,54 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - name: Install
-        run: |
-          npm ci --prefix server
-          npm ci --prefix web
-          npm ci --prefix web/qa
-
-      - name: Build the web app
-        run: npm run build
+      - name: Install the server
+        run: npm ci --prefix server
 
       - name: Server tests
         run: npm test
+
+      # Everything below runs on Node 24 only. The older Node runs the server tests and nothing else.
+      - name: Copy check
+        if: matrix.node == '24'
+        run: npm run check:copy
+
+      - name: Install the web app
+        if: matrix.node == '24'
+        run: npm ci --prefix web
+
+      - name: Build the web app
+        if: matrix.node == '24'
+        run: npm run build
+
+      - name: Secrets scan
+        if: matrix.node == '24'
+        run: node scripts/scan-secrets.mjs # reads web/dist too, so it comes after the build
+
+      - name: Audit (high and above)
+        if: matrix.node == '24'
+        run: |
+          npm audit --audit-level=high --prefix server
+          npm audit --audit-level=high --prefix web
+
+  browser:
+    name: Browser tests, ${{ matrix.os }}, Node 24
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install
+        run: |
+          npm ci --prefix web
+          npm ci --prefix web/qa
 
       - name: Install the browser (Linux)
         if: runner.os == 'Linux'
@@ -60,13 +100,11 @@ jobs:
         working-directory: web/qa
         run: npm test
 
-      - name: Copy check
-        run: npm run check:copy
-
-      - name: Secrets scan
-        run: node scripts/scan-secrets.mjs
-
-      - name: Audit (high and above)
-        run: |
-          npm audit --audit-level=high --prefix server
-          npm audit --audit-level=high --prefix web
+      - name: Keep the test output
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-output-${{ matrix.os }}
+          path: web/qa/.results
+          retention-days: 7
+          if-no-files-found: ignore

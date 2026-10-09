@@ -77,7 +77,7 @@ Your rooms and settings stay in a folder on your computer. The only thing that l
 
 - Windows, Firefox, Safari, a screen reader, and a real Linux desktop.
 - Real phones and other devices on a real network. The sharing tests use this computer's own network address and a container; [docs/sharing.md](docs/sharing.md) has a checklist to run yourself.
-- The GitHub Actions workflow in `.github/workflows/ci.yml`. It has never run.
+- The GitHub Actions workflow in `.github/workflows/ci.yml`. It has not passed yet. Its first run on GitHub passed the install, the build and the server tests, and failed in the browser tests (one Escape test on Linux and macOS, and the transcript scroll-speed check on macOS), so the steps after them never ran. The workflow and the browser tests have been changed since; the changed version has not run on GitHub.
 - Any provider's real service with tools: the formats were read from documentation and checked against stand-ins, not run against Groq, Google, Anthropic or an OpenAI-compatible service. The Claude choice is labelled experimental in the app. The optional Supabase storage was not run against a live project (and has no files, no Your rooms and no brief).
 - A sign-in link left to expire (the 5-minute rule is tested with a clock stand-in, not waited out).
 - The QR code decoding test, on anything but macOS.
