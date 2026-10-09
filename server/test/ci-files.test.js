@@ -1,5 +1,5 @@
 // Run: node --test test/   (no network)
-// The CI workflow and the Dependabot file say what the docs say they do. The workflow has never run on GitHub; these
+// The CI workflow and the Dependabot file say what the docs say they do. The workflow has not passed on GitHub yet; these
 // tests only check what can be checked by reading the files.
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -93,10 +93,129 @@ test("it says at the top that it has not passed yet", () => {
   assert.match(ci.split("\n").slice(0, 5).join("\n"), /NOT PASSED YET/);
 });
 
-test("dependabot checks each package folder and the actions, weekly", () => {
-  const d = read(".github/dependabot.yml");
-  for (const dir of ["/server", "/web", "/web/qa", "/server/supabase-lib"]) assert.ok(d.includes(`directory: "${dir}"`), dir);
-  assert.match(d, /package-ecosystem: "github-actions"/);
-  assert.equal((d.match(/interval: "weekly"/g) ?? []).length, 5);
-  assert.doesNotMatch(d, /auto-?merge/i);
+// ── Dependabot ──────────────────────────────────────────────────────
+
+// Reads the small part of YAML that .github/dependabot.yml uses: comments, "key: value", nested keys, "- " list items (a list item
+// may start a map), quoted strings, numbers, and one-line [a, b] lists. Nothing else: anything it does not understand throws, so a
+// change to the file that the tests could no longer read fails loudly instead of passing by accident.
+function parseYaml(text) {
+  const lines = text
+    .split("\n")
+    .map((raw) => ({ raw, indent: raw.match(/^ */)[0].length, body: raw.replace(/\s+#.*$/, "").trim() }))
+    .filter((l) => l.body && !l.body.startsWith("#"));
+  const scalar = (v) => {
+    if (/^\[.*\]$/.test(v)) return v.slice(1, -1).trim() === "" ? [] : v.slice(1, -1).split(",").map((x) => scalar(x.trim()));
+    if (/^".*"$/.test(v) || /^'.*'$/.test(v)) return v.slice(1, -1);
+    if (/^-?\d+$/.test(v)) return Number(v);
+    if (v === "true" || v === "false") return v === "true";
+    if (/^[\w./@*-]+$/.test(v)) return v;
+    throw new Error(`cannot read: ${v}`);
+  };
+  let i = 0;
+  const block = (indent) => {
+    if (lines[i].body.startsWith("- ")) {
+      const list = [];
+      while (i < lines.length && lines[i].indent === indent && lines[i].body.startsWith("- ")) {
+        // "- key: value" is a map whose first key sits two columns in; turn the dash into spaces and read it as a map.
+        lines[i] = { ...lines[i], indent: indent + 2, body: lines[i].body.slice(2) };
+        list.push(lines[i].body.includes(": ") || lines[i].body.endsWith(":") ? block(indent + 2) : scalar(lines[i++].body));
+      }
+      return list;
+    }
+    const map = {};
+    while (i < lines.length && lines[i].indent === indent) {
+      const m = lines[i].body.match(/^([\w./@"*-]+):(?: (.*))?$/);
+      if (!m) throw new Error(`cannot read: ${lines[i].raw}`);
+      i++;
+      map[m[1].replace(/"/g, "")] = m[2] !== undefined ? scalar(m[2]) : i < lines.length && lines[i].indent > indent ? block(lines[i].indent) : null;
+    }
+    return map;
+  };
+  const out = block(lines[0].indent);
+  assert.equal(i, lines.length, "the whole file was read");
+  return out;
+}
+
+const dependabotText = read(".github/dependabot.yml");
+const dependabot = parseYaml(dependabotText);
+const entries = dependabot.updates;
+const npmEntries = entries.filter((e) => e["package-ecosystem"] === "npm");
+const dirsWithPackages = () => {
+  const found = [];
+  const walk = (dir) => {
+    for (const d of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      if (!d.isDirectory() || ["node_modules", ".git", "dist", "dist-qa", ".results"].includes(d.name)) continue;
+      const rel = path.posix.join(dir, d.name);
+      if (fs.existsSync(path.join(ROOT, rel, "package.json"))) found.push(rel);
+      walk(rel);
+    }
+  };
+  if (fs.existsSync(path.join(ROOT, "package.json"))) found.push(".");
+  walk(".");
+  // A folder with no packages to update (the root one only has scripts) has nothing for Dependabot to do.
+  return found.filter((rel) => {
+    const pkg = JSON.parse(read(path.posix.join(rel, "package.json")));
+    return Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).length > 0;
+  });
+};
+
+test("the dependabot file parses, and says version 2 with five entries", () => {
+  assert.equal(dependabot.version, 2);
+  assert.equal(entries.length, 5);
+  for (const e of entries) {
+    assert.ok(e["package-ecosystem"] && e.directory && e.schedule, JSON.stringify(e));
+  }
+});
+
+test("dependabot covers every folder that has packages, and the actions", () => {
+  const covered = npmEntries.map((e) => e.directory).sort();
+  assert.deepEqual(covered, dirsWithPackages().map((d) => "/" + d).sort());
+  for (const dir of ["/server", "/web", "/web/qa", "/server/supabase-lib"]) assert.ok(covered.includes(dir), dir);
+  const actions = entries.filter((e) => e["package-ecosystem"] === "github-actions");
+  assert.deepEqual(actions.map((e) => e.directory), ["/"]);
+  assert.equal(new Set(entries.map((e) => `${e["package-ecosystem"]} ${e.directory}`)).size, entries.length, "no folder twice");
+});
+
+test("dependabot asks once a month, for at most two pull requests at a time per entry, and never merges", () => {
+  for (const e of entries) {
+    assert.equal(e.schedule.interval, "monthly", e.directory);
+    assert.equal(e["open-pull-requests-limit"], 2, e.directory);
+  }
+  assert.doesNotMatch(dependabotText, /auto-?merge/i);
+});
+
+test("dependabot ignores major versions in every ecosystem", () => {
+  for (const e of entries) {
+    const rule = (e.ignore ?? []).find((r) => r["dependency-name"] === "*");
+    assert.ok(rule, `${e["package-ecosystem"]} ${e.directory} ignores majors for every dependency`);
+    assert.deepEqual(rule["update-types"], ["version-update:semver-major"], e.directory);
+  }
+});
+
+test("dependabot does not offer minor versions of @google/generative-ai, which is 0.x", () => {
+  const withIt = npmEntries.filter((e) => {
+    const pkg = JSON.parse(read(path.posix.join(e.directory, "package.json")));
+    return "@google/generative-ai" in { ...pkg.dependencies, ...pkg.devDependencies };
+  });
+  assert.ok(withIt.length >= 1);
+  assert.match(JSON.parse(read("server/package.json")).dependencies["@google/generative-ai"], /^\^?0\./, "the package is still 0.x; if it is not, this rule can go");
+  for (const e of withIt) {
+    const rule = (e.ignore ?? []).find((r) => r["dependency-name"] === "@google/generative-ai");
+    assert.ok(rule, e.directory);
+    assert.ok(rule["update-types"].includes("version-update:semver-minor"), e.directory);
+  }
+});
+
+test("dependabot moves react and react-dom together, in every folder that has them", () => {
+  const withReact = npmEntries.filter((e) => {
+    const pkg = JSON.parse(read(path.posix.join(e.directory, "package.json")));
+    return "react" in { ...pkg.dependencies, ...pkg.devDependencies } || "react-dom" in { ...pkg.dependencies, ...pkg.devDependencies };
+  });
+  assert.deepEqual(withReact.map((e) => e.directory), ["/web"]);
+  for (const e of withReact) {
+    const groups = Object.values(e.groups ?? {});
+    const g = groups.find((x) => x.patterns.includes("react"));
+    assert.ok(g, e.directory);
+    assert.deepEqual([...g.patterns].sort(), ["react", "react-dom"], "react and react-dom, and nothing else, in one group");
+  }
 });
