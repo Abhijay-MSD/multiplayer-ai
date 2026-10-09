@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, openPage } from "./test-base.js";
 import AxeBuilder from "@axe-core/playwright";
 import fs from "node:fs";
 import { THEMES, MODES, VIEWPORTS, prime, settle, SCREENSHOT_DIR } from "./helpers.js";
@@ -30,8 +30,7 @@ for (const theme of THEMES) {
     for (const vp of VIEWPORTS) {
       for (const surface of SURFACES) {
         test(`${surface.name} · ${theme} · ${mode} · ${vp.name}`, async ({ browser }) => {
-          const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, reducedMotion: "reduce" });
-          const page = await context.newPage();
+          const { context, page } = await openPage(browser, { viewport: { width: vp.width, height: vp.height }, reducedMotion: "reduce" });
           await prime(page, { theme, mode });
           await page.goto(surface.path);
           await settle(page);
@@ -49,8 +48,7 @@ for (const theme of THEMES) {
 for (const mode of MODES) {
   for (const vp of VIEWPORTS) {
     test(`landing · signal-room · ${mode} · ${vp.name}`, async ({ browser }) => {
-      const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, reducedMotion: "reduce" });
-      const page = await context.newPage();
+      const { context, page } = await openPage(browser, { viewport: { width: vp.width, height: vp.height }, reducedMotion: "reduce" });
       // A stored theme from the app must not change the landing page.
       await prime(page, { theme: "horizon", mode });
       await page.goto("/");
@@ -82,8 +80,7 @@ for (const theme of THEMES) {
   for (const mode of MODES) {
     for (const [label, url] of STATES) {
       test(`state ${label} · ${theme} · ${mode}`, async ({ browser }) => {
-        const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
-        const page = await context.newPage();
+        const { context, page } = await openPage(browser, { viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
         await prime(page, { theme, mode });
         await page.goto(url);
         await settle(page);

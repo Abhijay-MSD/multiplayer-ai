@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./test-base.js";
 import AxeBuilder from "@axe-core/playwright";
 import { THEMES, MODES, prime } from "./helpers.js";
 import { ROOM, NOW, roomState, streamOf, mockApi, asReturning } from "./api-mocks.js";
@@ -83,13 +83,128 @@ test("after creating, a Share this link panel shows the link, copies it, and can
   await expect(page.getByRole("dialog", { name: "Share this link" })).toHaveCount(0);
 });
 
-test("Escape closes the share panel", async ({ page }) => {
+// ── Escape and the share panel ──────────────────────────────────────
+// The panel is non-modal, so Escape has to work wherever the focus is, and has to leave Escape alone when it belongs to something else
+// that is open (a field that clears itself, another dialog, a text composition).
+
+// Opens a room as its creator, so the panel is up. Returns once focus has landed in the panel: that step runs in the same effect
+// that listens for Escape, so it is the signal that the panel is ready for the key. Waiting a fixed time for it is the race that made
+// this test fail on slow runners.
+async function openSharePanel(page) {
   await asReturning(page, { name: "Dana", token: "mpai_creator" });
   await mockApi(page, { onJoin: () => ({ json: asController() }), stream: streamOf(asController()) });
   await page.goto(`/s/${ROOM}?new=1`);
-  await expect(page.getByRole("dialog", { name: "Share this link" })).toBeVisible();
+  const panel = page.getByRole("dialog", { name: "Share this link" });
+  await expect(panel.getByRole("button", { name: "Copy link" })).toBeFocused();
+  return panel;
+}
+
+// Presses Escape and says what had the focus at the moment of the key, so a test about "focus elsewhere" can prove it was elsewhere.
+async function pressEscape(page) {
+  await page.evaluate(() => {
+    window.__escapeFrom = undefined;
+    window.addEventListener("keydown", (e) => e.key === "Escape" && (window.__escapeFrom ??= document.activeElement === document.body ? "BODY" : document.activeElement.tagName), { capture: true });
+  });
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog", { name: "Share this link" })).toHaveCount(0);
+  return page.evaluate(() => window.__escapeFrom);
+}
+
+test("Escape closes the share panel", async ({ page }) => {
+  const panel = await openSharePanel(page);
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveCount(0);
+});
+
+test("Escape closes the share panel when nothing has the focus", async ({ page }) => {
+  const panel = await openSharePanel(page);
+  await page.evaluate(() => document.activeElement.blur());
+  expect(await pressEscape(page)).toBe("BODY");
+  await expect(panel).toHaveCount(0);
+});
+
+test("Escape closes the share panel when the focus is on another part of the room", async ({ page }) => {
+  for (const [label, target] of [
+    ["the composer", (p) => p.getByRole("textbox", { name: /Comment to the room|Message the agent/ }).first()],
+    ["the search field", (p) => p.getByRole("searchbox", { name: "Search the conversation" })],
+    ["the Save conversation button", (p) => p.getByRole("button", { name: "Save conversation as Markdown" })]
+  ]) {
+    const panel = await openSharePanel(page);
+    await target(page).focus();
+    await expect(target(page), label).toBeFocused();
+    expect(await pressEscape(page), label).not.toBe("BODY");
+    await expect(panel, label).toHaveCount(0);
+    await page.reload();
+  }
+});
+
+test("Escape closes the share panel after clicking in the conversation", async ({ page }) => {
+  const panel = await openSharePanel(page);
+  await page.getByText("Start with the checklist.").click();
+  await expect(panel.getByRole("button", { name: "Copy link" })).not.toBeFocused(); // the click took the focus out of the panel
+  await pressEscape(page);
+  await expect(panel).toHaveCount(0);
+});
+
+test("the share panel keeps the focus where the person put it while the room updates", async ({ page }) => {
+  // The room asks the server for its settings just after it opens. When that answer lands the room draws again; the panel must not
+  // take the focus back to its Copy link button each time that happens.
+  let answered;
+  const landed = new Promise((r) => (answered = r));
+  await page.route("**/api/config", async (route) => {
+    await new Promise((r) => setTimeout(r, 600));
+    await route.fulfill({ json: { max_steps_per_session: 7 } });
+    answered();
+  });
+  const panel = await openSharePanel(page);
+  await panel.getByRole("button", { name: "Done" }).focus();
+  await landed;
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))); // the room has drawn again
+  await expect(panel.getByRole("button", { name: "Done" })).toBeFocused();
+});
+
+test("Escape in the search field clears the search and leaves the share panel open; the next Escape closes it", async ({ page }) => {
+  const panel = await openSharePanel(page);
+  const search = page.getByRole("searchbox", { name: "Search the conversation" });
+  await search.fill("checklist");
+  await page.keyboard.press("Escape");
+  await expect(search).toHaveValue("");
+  await expect(panel).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveCount(0);
+});
+
+test("Escape closes the Appearance popup first and leaves the share panel open", async ({ page }) => {
+  const panel = await openSharePanel(page);
+  await page.getByRole("button", { name: /^Theme/ }).click();
+  const popup = page.getByRole("dialog", { name: "Appearance" });
+  await expect(popup).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(popup).toHaveCount(0);
+  await expect(panel).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveCount(0);
+});
+
+test("Escape that ends a text composition (IME) does not close the share panel", async ({ page }) => {
+  const panel = await openSharePanel(page);
+  const composer = page.getByRole("textbox", { name: /Comment to the room|Message the agent/ }).first();
+  await composer.focus();
+  await composer.evaluate((el) => el.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", isComposing: true, bubbles: true, cancelable: true })));
+  await expect(panel).toBeVisible();
+});
+
+test("on a phone, Escape closes the People drawer first and leaves the share panel open", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const panel = await openSharePanel(page);
+  await page.getByRole("button", { name: "People" }).focus(); // the panel floats over it on a phone, so it is opened from the keyboard
+  await page.keyboard.press("Enter");
+  const scrim = page.getByRole("button", { name: "Close people list" });
+  await expect(scrim).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(scrim).toHaveCount(0);
+  await expect(panel).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveCount(0);
 });
 
 test("/new: a problem with the form is shown next to it and the text is kept", async ({ page }) => {

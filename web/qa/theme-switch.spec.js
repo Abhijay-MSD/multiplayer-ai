@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, openPage } from "./test-base.js";
 import { THEMES, MODES, prime, settle, stubFonts } from "./helpers.js";
 
 // Switching themes must not flash the wrong theme, and must not move things
@@ -8,8 +8,7 @@ test.describe("no flash of the wrong theme", () => {
   for (const theme of THEMES) {
     for (const mode of MODES) {
       test(`first frame · ${theme} · ${mode}`, async ({ browser }) => {
-        const context = await browser.newContext({ reducedMotion: "reduce" });
-        const page = await context.newPage();
+        const { context, page } = await openPage(browser, { reducedMotion: "reduce" });
         await prime(page, { theme, mode });
         // Runs before any page script. Records every change to the theme
         // attributes with its time, and the time of the first paint.
@@ -51,8 +50,7 @@ test.describe("no flash of the wrong theme", () => {
 
   test("system mode follows the operating system on first frame", async ({ browser }) => {
     for (const scheme of ["light", "dark"]) {
-      const context = await browser.newContext({ colorScheme: scheme, reducedMotion: "reduce" });
-      const page = await context.newPage();
+      const { context, page } = await openPage(browser, { colorScheme: scheme, reducedMotion: "reduce" });
       await page.goto("/__fixture/room?as=Dev");
       await expect(page.locator("html")).toHaveAttribute("data-mode", scheme);
       await expect(page.locator("html")).toHaveAttribute("data-mode-pref", "system");

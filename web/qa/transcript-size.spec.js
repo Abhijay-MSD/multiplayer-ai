@@ -1,4 +1,4 @@
-import { test } from "@playwright/test";
+import { test } from "./test-base.js";
 import { settle } from "./helpers.js";
 
 // Measures whether a long transcript needs virtualizing. Prints numbers; it

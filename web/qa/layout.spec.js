@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, openPage } from "./test-base.js";
 import { THEMES, MODES, prime, settle } from "./helpers.js";
 
 // Every screen with a made-up room, in every theme and both modes, at 1440, 768 and 360 wide: nothing may make the page scroll
@@ -19,8 +19,7 @@ for (const width of WIDTHS) {
     for (const mode of MODES) {
       for (const [label, url] of SURFACES) {
         test(`${label} · ${theme} · ${mode} · ${width}px has no sideways scroll`, async ({ browser }) => {
-          const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
-          const page = await context.newPage();
+          const { context, page } = await openPage(browser, { viewport: { width, height: 900 }, reducedMotion: "reduce" });
           await prime(page, { theme, mode });
           await page.goto(url);
           await settle(page);

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./test-base.js";
 import { THEMES, MODES, prime, settle } from "./helpers.js";
 
 // The room behaves the same in every theme:

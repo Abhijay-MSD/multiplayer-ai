@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./test-base.js";
 import fs from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import { THEMES, MODES, prime, stubFonts } from "./helpers.js";

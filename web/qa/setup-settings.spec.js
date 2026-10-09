@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./test-base.js";
 import AxeBuilder from "@axe-core/playwright";
 import { THEMES, MODES, prime, stubFonts } from "./helpers.js";
 import { ROOM, roomState, sse, mockApi, asReturning } from "./api-mocks.js";

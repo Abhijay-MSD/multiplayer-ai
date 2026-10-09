@@ -227,7 +227,7 @@ export function SessionRoomView({
       </div>
 
       {isMobile && drawerOpen && (
-        <button type="button" className={styles.scrim} aria-label="Close people list" onClick={() => setDrawerOpen(false)} />
+        <button type="button" className={styles.scrim} data-part="scrim" aria-label="Close people list" onClick={() => setDrawerOpen(false)} />
       )}
       <aside id="room-rail" className={styles.rail} data-part="rail" aria-label="People and room details">
         <RoomDetails session={session} />

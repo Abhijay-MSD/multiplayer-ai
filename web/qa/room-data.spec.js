@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./test-base.js";
 import { ROOM, ROOM_B, NOW, roomState, sse, streamOf, mockApi, asReturning } from "./api-mocks.js";
 
 // The real room route (/s/:id) with its real data layer, against a mocked API.

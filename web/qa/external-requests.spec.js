@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./test-base.js";
 import { THEMES } from "./helpers.js";
 import { ROOM, roomState, mockApi, asReturning } from "./api-mocks.js";
 
