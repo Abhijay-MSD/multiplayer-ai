@@ -30,7 +30,7 @@ for (const theme of THEMES) {
     for (const vp of VIEWPORTS) {
       for (const surface of SURFACES) {
         test(`${surface.name} · ${theme} · ${mode} · ${vp.name}`, async ({ browser }) => {
-          const { context, page } = await openPage(browser, { viewport: { width: vp.width, height: vp.height }, reducedMotion: "reduce" });
+          const { page, done } = await openPage(browser, { viewport: { width: vp.width, height: vp.height }, reducedMotion: "reduce" });
           await prime(page, { theme, mode });
           await page.goto(surface.path);
           await settle(page);
@@ -38,7 +38,7 @@ for (const theme of THEMES) {
           await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
           await page.screenshot({ path: `${SCREENSHOT_DIR}/${surface.name}-${theme}-${mode}-${vp.name}.png` });
           await expectNoViolations(page, `${surface.name}/${theme}/${mode}/${vp.name}`);
-          await context.close();
+          await done();
         });
       }
     }
@@ -48,7 +48,7 @@ for (const theme of THEMES) {
 for (const mode of MODES) {
   for (const vp of VIEWPORTS) {
     test(`landing · signal-room · ${mode} · ${vp.name}`, async ({ browser }) => {
-      const { context, page } = await openPage(browser, { viewport: { width: vp.width, height: vp.height }, reducedMotion: "reduce" });
+      const { page, done } = await openPage(browser, { viewport: { width: vp.width, height: vp.height }, reducedMotion: "reduce" });
       // A stored theme from the app must not change the landing page.
       await prime(page, { theme: "horizon", mode });
       await page.goto("/");
@@ -61,7 +61,7 @@ for (const mode of MODES) {
       });
       await page.screenshot({ path: `${SCREENSHOT_DIR}/landing-signal-room-${mode}-${vp.name}.png`, fullPage: true });
       await expectNoViolations(page, `landing/${mode}/${vp.name}`);
-      await context.close();
+      await done();
     });
   }
 }
@@ -80,12 +80,12 @@ for (const theme of THEMES) {
   for (const mode of MODES) {
     for (const [label, url] of STATES) {
       test(`state ${label} · ${theme} · ${mode}`, async ({ browser }) => {
-        const { context, page } = await openPage(browser, { viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+        const { page, done } = await openPage(browser, { viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
         await prime(page, { theme, mode });
         await page.goto(url);
         await settle(page);
         await expectNoViolations(page, `${label}/${theme}/${mode}`);
-        await context.close();
+        await done();
       });
     }
   }

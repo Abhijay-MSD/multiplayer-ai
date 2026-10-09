@@ -8,7 +8,7 @@ test.describe("no flash of the wrong theme", () => {
   for (const theme of THEMES) {
     for (const mode of MODES) {
       test(`first frame · ${theme} · ${mode}`, async ({ browser }) => {
-        const { context, page } = await openPage(browser, { reducedMotion: "reduce" });
+        const { page, done } = await openPage(browser, { reducedMotion: "reduce" });
         await prime(page, { theme, mode });
         // Runs before any page script. Records every change to the theme
         // attributes with its time, and the time of the first paint.
@@ -43,18 +43,18 @@ test.describe("no flash of the wrong theme", () => {
         expect(flash.bg, "tokens are applied").not.toBe("");
         const late = flash.mut.filter((m) => m.t > flash.firstPaint);
         expect(late, "theme attributes changed after the first paint").toEqual([]);
-        await context.close();
+        await done();
       });
     }
   }
 
   test("system mode follows the operating system on first frame", async ({ browser }) => {
     for (const scheme of ["light", "dark"]) {
-      const { context, page } = await openPage(browser, { colorScheme: scheme, reducedMotion: "reduce" });
+      const { page, done } = await openPage(browser, { colorScheme: scheme, reducedMotion: "reduce" });
       await page.goto("/__fixture/room?as=Dev");
       await expect(page.locator("html")).toHaveAttribute("data-mode", scheme);
       await expect(page.locator("html")).toHaveAttribute("data-mode-pref", "system");
-      await context.close();
+      await done();
     }
   });
 });

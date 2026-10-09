@@ -19,7 +19,7 @@ for (const width of WIDTHS) {
     for (const mode of MODES) {
       for (const [label, url] of SURFACES) {
         test(`${label} · ${theme} · ${mode} · ${width}px has no sideways scroll`, async ({ browser }) => {
-          const { context, page } = await openPage(browser, { viewport: { width, height: 900 }, reducedMotion: "reduce" });
+          const { page, done } = await openPage(browser, { viewport: { width, height: 900 }, reducedMotion: "reduce" });
           await prime(page, { theme, mode });
           await page.goto(url);
           await settle(page);
@@ -31,7 +31,7 @@ for (const width of WIDTHS) {
             };
           });
           expect(wide.page, `sideways overflow ${JSON.stringify(wide.off)}`).toBeLessThanOrEqual(0);
-          await context.close();
+          await done();
         });
       }
     }

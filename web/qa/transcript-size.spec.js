@@ -33,7 +33,7 @@ const STEPS = 120; // wheel turns from the end of the transcript to the top, one
 // scrollTop from a script every frame (what this test used to do) makes the main thread redo the page each frame, which costs 30 ms at
 // 2000 events on a laptop slowed 4x and is not what a reader sees: a real wheel scroll of the same page costs about 1 ms.
 async function measure(browser, count) {
-  const { context, page } = await openPage(browser, { viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+  const { page, done } = await openPage(browser, { viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
   const start = Date.now();
   await page.goto(`/__fixture/room?as=Dev&count=${count}`);
   await page.waitForSelector('[data-part="entry"]');
@@ -68,7 +68,7 @@ async function measure(browser, count) {
     }
     frames.push(...(await page.evaluate(() => ((window.__recording = false), window.__frames))));
   }
-  await context.close();
+  await done();
   frames.sort((a, b) => a - b);
   const at = (q) => frames[Math.min(frames.length - 1, Math.floor(frames.length * q))];
   return { count, loadMs, nodes: page_.nodes, entries: page_.entries, frames: frames.length, p50: at(0.5), p95: at(0.95), max: frames.at(-1) };
