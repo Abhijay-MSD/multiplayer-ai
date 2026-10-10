@@ -9,7 +9,7 @@ import { escapeForLog } from "../safe-text.js";
 export const CATEGORY_MESSAGES = {
   NO_KEY: "No API key is set up yet. The host needs to add one in Settings.",
   BAD_KEY: "The model provider didn't accept the API key. The host needs to check it in Settings.",
-  NO_QUOTA: "The model provider says this key is out of quota or is being rate limited.",
+  NO_QUOTA: "The model provider is limiting this key. Check the provider's console for the limit, then try again.", // with a short, usable wait it is rateLimitLine(seconds) instead
   BUSY: "The model provider is busy right now. Try again in a moment.",
   NETWORK: "The host's computer couldn't reach the model provider.",
   TIMEOUT: "The model provider took too long to answer.",
@@ -19,6 +19,22 @@ export const CATEGORY_MESSAGES = {
 };
 
 // ── how long the provider says to wait ──────────────────────────────
+
+/** A wait this long or shorter is said to the room in seconds (and the web app counts it down). A longer one is not. */
+export const SHORT_WAIT_SECONDS = 120;
+
+/** The room's sentence for a rate limit with a short wait. Never carries anything the provider said but the number. */
+export function rateLimitLine(seconds) {
+  const n = Math.max(1, seconds);
+  return `The model provider is limiting how fast this key can be used. Try again in about ${n} ${n === 1 ? "second" : "seconds"}.`;
+}
+
+// A daily or monthly limit, or a billing or credit problem, is not a wait of seconds even when the text also names some: the
+// longer sentence is the honest one. Addresses are taken out first, because the real per-minute text ends with one that says "billing".
+const LONG_WINDOW = /per[\s_-]?(?:day|month)|\b(?:daily|monthly)\b|\b(?:TPD|RPD)\b|billing|credit|payment|\bbalance\b|insufficient[\s_-]?quota|exceeded your current quota/i;
+export function isLongWindow(text) {
+  return LONG_WINDOW.test(String(text ?? "").replace(/https?:\/\/\S+/gi, " "));
+}
 
 const MAX_HINT_SECONDS = 3600; // a hint of more than an hour is not a wait someone sits through: it is treated as no hint
 const UNIT_SECONDS = { ms: 0.001, millisecond: 0.001, milliseconds: 0.001, s: 1, sec: 1, secs: 1, second: 1, seconds: 1, m: 60, min: 60, mins: 60, minute: 60, minutes: 60, h: 3600, hr: 3600, hrs: 3600, hour: 3600, hours: 3600 };
@@ -79,14 +95,18 @@ export function hintFrom({ header = null, text = "", now = Date.now() } = {}) {
 
 /** A model call that failed. `message` is the category message; `detail` is the redacted upstream text for the terminal. */
 export class ProviderFailure extends Error {
-  constructor(category, { status = null, detail = "", provider = null, retryAfterSeconds = null } = {}) {
-    super(CATEGORY_MESSAGES[category] ?? CATEGORY_MESSAGES.UNKNOWN);
+  constructor(category, { status = null, detail = "", provider = null, retryAfterSeconds = null, longTerm = false } = {}) {
+    // A rate limit with a short, usable wait says how long; anything else (no hint, a long one, a daily or monthly limit, a billing
+    // problem) is the category's own sentence. Either way the room never gets the provider's words.
+    const short = category === "NO_QUOTA" && !longTerm && retryAfterSeconds !== null && retryAfterSeconds <= SHORT_WAIT_SECONDS;
+    super(short ? rateLimitLine(retryAfterSeconds) : CATEGORY_MESSAGES[category] ?? CATEGORY_MESSAGES.UNKNOWN);
     this.name = "ProviderFailure";
     this.category = category;
     this.status = status;
     this.detail = detail;
     this.provider = provider;
     this.retryAfterSeconds = retryAfterSeconds; // whole seconds the provider said to wait, or null
+    this.longTerm = longTerm; // the provider's words name a daily or monthly limit or a billing problem
   }
 }
 
@@ -142,7 +162,7 @@ export function toProviderFailure(e, provider = null) {
   // The hint is read from the whole of what the provider said (the header an adapter kept, the message, and the structured details
   // some providers send), before the detail is cut for the terminal.
   const text = `${String(e?.message ?? e)}\n${e?.errorDetails !== undefined ? safeJson(e.errorDetails) : ""}`;
-  return new ProviderFailure(categoryOf(e), { status: statusOf(e), detail, provider, retryAfterSeconds: hintFrom({ header: e?.retryAfter, text }) });
+  return new ProviderFailure(categoryOf(e), { status: statusOf(e), detail, provider, retryAfterSeconds: hintFrom({ header: e?.retryAfter, text }), longTerm: isLongWindow(text) });
 }
 
 function safeJson(v) {
