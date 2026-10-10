@@ -61,7 +61,7 @@ for (const kind of ["memory", "sqlite"]) {
     const out = await r.step();
     assert.equal(out.event.content, "I made notes.md.");
     assert.equal(out.step_count, 1);
-    assert.deepEqual(r.calls[0].tools.map((x) => x.name), ["list_files", "read_file", "write_file"]);
+    assert.deepEqual(r.calls[0].tools.map((x) => x.name), ["list_files", "read_file", "write_file", "append_file"]);
     assert.ok(r.calls[0].signal instanceof AbortSignal);
     assert.deepEqual(await w.lines(), ["Created notes.md, 11 bytes"]);
     const file = await w.store.getFile(w.id, "notes.md");
@@ -113,7 +113,7 @@ for (const kind of ["memory", "sqlite"]) {
     const r = shared.run([say("ok")]);
     await r.step();
     assert.equal(r.calls[0].tools, undefined);
-    assert.ok(!r.calls[0].messages.some((m) => /list_files|read_file|write_file/.test(m.content)));
+    assert.ok(!r.calls[0].messages.some((m) => /list_files|read_file|write_file|append_file/.test(m.content)));
   });
 
   t("the host turning the files off means no tools offered, and turning them on again means they are", async (w) => {
@@ -124,7 +124,7 @@ for (const kind of ["memory", "sqlite"]) {
     await w.store.updateSession(w.id, { files_enabled: true });
     r = w.run([say("ok")]);
     await r.step();
-    assert.equal(r.calls[0].tools.length, 3);
+    assert.equal(r.calls[0].tools.length, 4);
   });
 
   t("a provider whose tool format is not confirmed gets text only, with a notice in the room, once", async (w) => {
@@ -146,7 +146,7 @@ for (const kind of ["memory", "sqlite"]) {
     const second = await r.step();
     assert.equal(second.event.content, "plain two");
     assert.equal(r.calls.length, 3);
-    assert.ok(r.calls[0].tools.length === 3);
+    assert.ok(r.calls[0].tools.length === 4);
     assert.equal(r.calls[1].tools?.length ?? 0, 0);
     assert.equal(r.calls[2].tools, undefined, "the next message doesn't even offer them");
     const notices = (await w.lines()).filter((l) => /doesn't accept tools/.test(l));

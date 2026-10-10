@@ -1,5 +1,5 @@
 // Run: node --test test/   (no network, no model)
-// The three file tools the agent may use, run directly: what each does, what it says back to the model, the quiet line it
+// The four file tools the agent may use (append_file has its own tests, in agent-append.test.js), run directly: what each does, what it says back to the model, the quiet line it
 // leaves in the room, and what it does with a hostile name, a malformed call or a call it should not make.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
@@ -19,8 +19,8 @@ async function setup(overrides = {}) {
   return { store, id, run };
 }
 
-test("the tool definitions are exactly list_files, read_file and write_file, with object schemas", () => {
-  assert.deepEqual(TOOL_DEFINITIONS.map((t) => t.name), ["list_files", "read_file", "write_file"]);
+test("the tool definitions are exactly list_files, read_file, write_file and append_file, with object schemas", () => {
+  assert.deepEqual(TOOL_DEFINITIONS.map((t) => t.name), ["list_files", "read_file", "write_file", "append_file"]);
   for (const t of TOOL_DEFINITIONS) {
     assert.equal(typeof t.description, "string");
     assert.equal(t.parameters.type, "object");
@@ -184,7 +184,7 @@ test("an unknown tool is refused, including names that try to reach for a shell 
     assert.equal(r.ok, false, String(name));
     assert.equal(r.category, "UNKNOWN_TOOL");
     assert.equal(r.line, "Tried a tool that doesn't exist, so nothing was done.");
-    assert.match(r.content, /list_files, read_file and write_file/);
+    assert.match(r.content, /list_files, read_file, write_file and append_file/);
   }
 });
 

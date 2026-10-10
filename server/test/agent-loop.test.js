@@ -50,7 +50,7 @@ test("a model that just answers: one call, the tools offered, no tool lines", as
   const out = await run();
   assert.deepEqual([out.text, out.modelCalls, out.toolCalls, out.stopped], ["hello", 1, 0, null]);
   assert.equal(calls.length, 1);
-  assert.deepEqual(calls[0].tools.map((t) => t.name), ["list_files", "read_file", "write_file"]);
+  assert.deepEqual(calls[0].tools.map((t) => t.name), ["list_files", "read_file", "write_file", "append_file"]);
   assert.deepEqual(lines, []);
 });
 

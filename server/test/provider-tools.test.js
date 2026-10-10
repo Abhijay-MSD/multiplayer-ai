@@ -115,8 +115,8 @@ for (const [name, call] of [["groq", groq], ["compat", compat]]) {
   test(`${name}: tools go in as {type:"function", function:{name, description, parameters}}`, async () => {
     let body;
     await call({ messages: BASE, tools: TOOL_DEFINITIONS, fetchImpl: async (u, init) => ((body = JSON.parse(init.body)), chatReply({ content: "hi" })) });
-    assert.equal(body.tools.length, 3);
-    assert.deepEqual(body.tools.map((t) => [t.type, t.function.name]), [["function", "list_files"], ["function", "read_file"], ["function", "write_file"]]);
+    assert.equal(body.tools.length, 4);
+    assert.deepEqual(body.tools.map((t) => [t.type, t.function.name]), [["function", "list_files"], ["function", "read_file"], ["function", "write_file"], ["function", "append_file"]]);
     assert.deepEqual(body.tools[2].function.parameters.required, ["name", "content"]);
     assert.equal(typeof body.tools[2].function.description, "string");
     assert.equal(JSON.stringify(body).includes("test-key"), false, "the key is never in the body");
@@ -203,7 +203,7 @@ const claudeReply = (content, usage = { input_tokens: 21, output_tokens: 9 }) =>
 test("claude: tools go in as {name, description, input_schema} and a plain request has none", async () => {
   let body;
   await claude({ messages: BASE, tools: TOOL_DEFINITIONS, fetchImpl: async (u, init) => ((body = JSON.parse(init.body)), claudeReply([{ type: "text", text: "hi" }])) });
-  assert.deepEqual(body.tools.map((t) => Object.keys(t).sort()), [["description", "input_schema", "name"], ["description", "input_schema", "name"], ["description", "input_schema", "name"]]);
+  assert.deepEqual(body.tools.map((t) => Object.keys(t).sort()), Array(4).fill(["description", "input_schema", "name"]));
   assert.equal(body.tools[1].input_schema.type, "object");
   assert.deepEqual(body.tools[2].input_schema.required, ["name", "content"]);
   await claude({ messages: BASE, fetchImpl: async (u, init) => ((body = JSON.parse(init.body)), claudeReply([{ type: "text", text: "hi" }])) });
@@ -287,7 +287,7 @@ test("gemini: functions go in as one functionDeclarations tool, and a no-argumen
     const tools = seen[0].body.tools;
     assert.equal(tools.length, 1);
     const decls = tools[0].functionDeclarations;
-    assert.deepEqual(decls.map((d) => d.name), ["list_files", "read_file", "write_file"]);
+    assert.deepEqual(decls.map((d) => d.name), ["list_files", "read_file", "write_file", "append_file"]);
     assert.equal("parameters" in decls[0], false);
     assert.equal(decls[2].parameters.type, "object");
     assert.deepEqual(decls[2].parameters.required, ["name", "content"]);

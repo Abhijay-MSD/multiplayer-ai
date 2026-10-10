@@ -31,10 +31,10 @@ const until = async (cond, ms, what) => {
   }
 };
 
-function launch(dataDir) {
+function launch(dataDir, extraEnv = {}) {
   const child = spawn(process.execPath, ["scripts/start.mjs"], {
     cwd: ROOT,
-    env: { PATH: process.env.PATH, HOME: tempDir("multiplayer-ai-home-"), NO_OPEN: "1", MULTIPLAYER_AI_NO_DOTENV: "1", MULTIPLAYER_AI_DATA_DIR: dataDir, NODE_OPTIONS: `--require "${BLOCKER}" --require "${FAKES}"`, npm_config_offline: "true" },
+    env: { PATH: process.env.PATH, HOME: tempDir("multiplayer-ai-home-"), NO_OPEN: "1", MULTIPLAYER_AI_NO_DOTENV: "1", MULTIPLAYER_AI_DATA_DIR: dataDir, NODE_OPTIONS: `--require "${BLOCKER}" --require "${FAKES}"`, npm_config_offline: "true", ...extraEnv },
     stdio: ["ignore", "pipe", "pipe"]
   });
   children.push(child);
@@ -96,5 +96,47 @@ test("each provider's adapter writes a file through the real launcher, in that p
   assert.equal(gone, 0, "stops cleanly");
   const printed = run.out + run.err;
   assert.ok(!printed.includes(KEY), "no key in anything printed");
+  for (const f of fs.readdirSync(data).filter((n) => n.startsWith("multiplayer-ai.db"))) assert.ok(!fs.readFileSync(path.join(data, f)).includes(KEY), `${f} holds no key`);
+});
+
+test("each provider writes one document in four sections (write_file, then append_file three times) through the real launcher, in that provider's own format", { timeout: 300_000 }, async () => {
+  for (const d of ["server/node_modules", "web/node_modules"]) assert.ok(fs.existsSync(path.join(ROOT, d)), `${d} is missing. Run "npm ci" in server/ and web/ first; this test does not install anything. CI installs and builds before it runs the server tests.`);
+  const data = path.join(tempDir(), "data");
+  const run = launch(data, { FAKE_SERVICES_SECTIONS: "1" });
+  await until(() => /Sign-in link[^\n]*\n\s+http\S+/.test(run.out) || run.exited, 120_000, "Multiplayer AI to start");
+  assert.equal(run.exited, null, run.out + run.err);
+  const url = /Multiplayer AI is running at (http:\/\/127\.0\.0\.1:\d+)/.exec(run.out)[1];
+  const link = new URL(/Sign-in link[^\n]*\n\s+(http\S+)/.exec(run.out)[1]);
+  const signed = await call(url, "GET", link.pathname + link.search);
+  const admin = { Cookie: signed.headers["set-cookie"][0].split(";")[0] };
+
+  for (const provider of ["groq", "claude", "gemini"]) {
+    assert.equal((await call(url, "PUT", "/api/settings", { headers: admin, body: { provider } })).status, 200, provider);
+    assert.equal((await call(url, "PUT", "/api/settings/key", { headers: admin, body: { provider, key: `${KEY}_${provider}` } })).status, 200);
+    const room = (await call(url, "POST", "/api/tools/create_session", { headers: admin, body: { task: `Write a long essay with ${provider}`, creator_name: "Abhi", auto_start: true } })).json();
+    let events;
+    await until(async () => ((events = (await call(url, "POST", "/api/tools/get_session", { body: { session_id: room.session_id, token: room.token } })).json().events), events.some((e) => e.kind === "agent_message" || /could not reply|Stopped/.test(e.content))), 30_000, `${provider}'s reply`);
+    const status = events.filter((e) => e.kind === "status").map((e) => e.content);
+    const reply = events.find((e) => e.kind === "agent_message");
+    assert.ok(reply, `${provider}: no reply. Room said: ${status.join(" | ")}. Terminal: ${run.err.split("\n").filter((l) => /fake service|failed/.test(l)).slice(-4).join(" ")}`);
+    assert.equal(reply.content, `Wrote essay.md in 4 sections through ${provider}.`);
+
+    const sections = [1, 2, 3, 4].map((k) => `## Section ${k} (${provider})\n\nText of section ${k}, written through ${provider}.\n\n`);
+    const file = (await call(url, "POST", "/api/tools/get_room_file", { body: { session_id: room.session_id, token: room.token, name: "essay.md" } })).json().file;
+    assert.equal(file.content, sections.join(""), `${provider}: the four sections, in order, in one file`);
+    assert.deepEqual([file.version, file.updated_by, file.on_behalf_of], [4, "agent", "Abhi"]);
+    const versions = (await call(url, "POST", "/api/tools/file_versions", { body: { session_id: room.session_id, token: room.token, name: "essay.md" } })).json();
+    assert.deepEqual(versions.versions.map((v) => v.version), [4, 3, 2, 1], `${provider}: every section is a kept version`);
+
+    const lines = status.filter((l) => !l.startsWith("Used "));
+    assert.deepEqual(lines.slice(0, 1), [`Created essay.md, ${Buffer.byteLength(sections[0])} bytes`], provider);
+    assert.deepEqual(lines.slice(1, 4), [2, 3, 4].map((v) => `Added to essay.md, version ${v}, ${Buffer.byteLength(sections.slice(0, v).join(""))} bytes`), `${provider}: a quiet line for every section`);
+    assert.ok(status.some((l) => /^Used 5 model calls and 4 file tool calls\./.test(l)), `${provider}: ${status.join(" | ")}`);
+    assert.ok(!status.some((l) => /length limit|Stopped|could not/i.test(l)), provider);
+  }
+
+  const gone = await new Promise((resolve) => (run.child.once("exit", (code) => resolve(code)), run.child.kill("SIGINT")));
+  assert.equal(gone, 0, "stops cleanly");
+  assert.ok(!(run.out + run.err).includes(KEY), "no key in anything printed");
   for (const f of fs.readdirSync(data).filter((n) => n.startsWith("multiplayer-ai.db"))) assert.ok(!fs.readFileSync(path.join(data, f)).includes(KEY), `${f} holds no key`);
 });

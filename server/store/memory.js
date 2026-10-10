@@ -248,16 +248,23 @@ export function createMemoryStore({ now = () => new Date() } = {}) {
     // ── files ──────────────────────────────────────────────────────
     supportsFiles: true,
 
-    async putFile(sessionId, { name, content, author, onBehalfOf = null, limits }) {
+    // `append: true` adds `content` to the end of the file's newest version (or makes the file), in this one step, so two
+    // appends at once are both kept. Every rule below applies to the whole file that results, not to the piece.
+    async putFile(sessionId, { name, content, author, onBehalfOf = null, append = false, limits }) {
       const n = checkFileName(name);
       if (!n.ok) throw new StoreError("CONSTRAINT", n.message);
       const c = checkFileContent(content);
       if (!c.ok) throw new StoreError("CONSTRAINT", c.message);
-      const size = Buffer.byteLength(content, "utf8");
-      if (size > limits.maxFileBytes) throw new StoreError("FILE_TOO_LARGE", `That file is ${size} bytes; the limit is ${limits.maxFileBytes}.`);
+      let size = Buffer.byteLength(content, "utf8");
+      if (!append && size > limits.maxFileBytes) throw new StoreError("FILE_TOO_LARGE", `That file is ${size} bytes; the limit is ${limits.maxFileBytes}.`);
       needSession(sessionId);
       const mine = files.filter((f) => f.session_id === sessionId);
       const latest = mine.filter((f) => f.name_key === n.key).sort((a, b) => b.version - a.version)[0];
+      if (append) {
+        content = (latest?.content ?? "") + content;
+        size = Buffer.byteLength(content, "utf8");
+        if (size > limits.maxFileBytes) throw new StoreError("FILE_TOO_LARGE", `That file would be ${size} bytes; the limit is ${limits.maxFileBytes}.`);
+      }
       if (latest && latest.content === content) return { file: fileMeta(latest), created: false, unchanged: true };
       if (!latest && new Set(mine.map((f) => f.name_key)).size >= limits.maxFiles) throw new StoreError("TOO_MANY_FILES", `A room can hold ${limits.maxFiles} files.`);
       const version = (latest?.version ?? 0) + 1;

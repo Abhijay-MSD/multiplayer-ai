@@ -168,7 +168,7 @@ test("the agent's loop through the whole stack: a provider asks for write_file, 
   assert.ok(lines.includes("Created notes.md, 16 bytes"), lines.join(" | "));
   assert.equal(b.provider.requests.length, 2, "one call for the tool, one for the answer");
   const first = JSON.parse(b.provider.requests[0].body);
-  assert.deepEqual(first.tools.map((t) => t.function.name), ["list_files", "read_file", "write_file"]);
+  assert.deepEqual(first.tools.map((t) => t.function.name), ["list_files", "read_file", "write_file", "append_file"]);
   assert.ok(!b.provider.requests.some((q) => q.body.includes(KEY) || q.url.includes(KEY)));
 });
 

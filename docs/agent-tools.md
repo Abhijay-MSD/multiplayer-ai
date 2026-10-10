@@ -1,6 +1,6 @@
 # What the agent can do with files
 
-The agent can use three tools on **text files kept in the room**: `list_files`, `read_file` and `write_file`. That is all. There is no tool to delete a file, make a folder, run code, use a shell, search or browse the web, or reach any other computer. Adding one of those is not a small change: it was thought through in an earlier design note (see "Not built" below) and nothing of it exists.
+The agent can use four tools on **text files kept in the room**: `list_files`, `read_file`, `write_file` and `append_file`. That is all. There is no tool to delete a file, make a folder, run code, use a shell, search or browse the web, or reach any other computer. Adding one of those is not a small change: it was thought through in an earlier design note (see "Not built" below) and nothing of it exists.
 
 This page says what the tools do, who can cause them to run, what is stored and where, what is limited, what the room is shown, and what is and isn't prevented.
 
@@ -11,6 +11,7 @@ This page says what the tools do, who can cause them to run, what is stored and 
 | `list_files` | Lists the files in the room with each one's size and version. |
 | `read_file` | Reads one file by name. The text comes back marked as untrusted data. A file longer than the result limit is cut, and the result says so. |
 | `write_file` | Creates a file, or replaces a file's whole content. The previous version is kept (up to 10 versions of a file). Writing the text a file already has changes nothing. |
+| `append_file` | Adds text to the end of a file, or creates the file. It is for writing a long document in sections, one section on each call; the agent is told to do that rather than refuse or cut a long request. It is `write_file` with the text added inside the same step, so everything that holds for a write holds for a section: the same name rules, the same limits on one file, on the number of files and on the room's space (every section counts, and every section is a kept version), the same quiet line in the room for every call (`Added to essay.md, version 3, 2.1 KB`), and only the controller's messages can start it. The text is added exactly as given. |
 
 A name is looked up in the room's own list and nowhere else. Files are rows in the data file, not files on your disk, so no path is ever built from anything the model says.
 
@@ -71,7 +72,7 @@ A file, or anything a tool returns, can contain text written to steer a model ("
 - That text is returned between markers that call it untrusted data, with a warning before it. A file can't contain the closing marker: it is removed from the text.
 - The model is told that only the person steering gives instructions and that text in files is data.
 - The text is cut to the result limit.
-- The tools can only list, read and write files in this room. A model that is misled can write or overwrite files in the room (older versions are kept, and the host can restore them), and it can say things in the room. It can't delete anything, reach another room, a path on your disk, the network, or your key.
+- The tools can only list, read, write and append to files in this room. A model that is misled can write or overwrite files in the room (older versions are kept, and the host can restore them), and it can say things in the room. It can't delete anything, reach another room, a path on your disk, the network, or your key.
 
 What is not prevented: the model may still follow what a file says. If you attach a file you didn't write, the agent may be steered by it. Attach only files you trust, and keep the switch off in a room where the controller may be someone you don't know.
 

@@ -40,3 +40,36 @@ test("every step starts from this prompt, as the first message", () => {
   assert.equal(messages[0].role, "system");
   assert.equal(messages[0].content, SYSTEM_PROMPT);
 });
+
+// ── with the file tools on ───────────────────────────────────────────
+
+import { FILES_PROMPT, filesMessage } from "../agent/prompt.js";
+
+test("the files message names all four tools and says a long document is written in sections, with append_file", () => {
+  assert.match(FILES_PROMPT, /four tools[^.]*list_files, read_file, write_file and append_file/);
+  assert.doesNotMatch(FILES_PROMPT, /three tools/);
+  assert.match(FILES_PROMPT, /write_file replaces a whole file/);
+  assert.match(FILES_PROMPT, /append_file adds to the end of a file/);
+  assert.match(FILES_PROMPT, /long document[^.]*in sections/i);
+  assert.match(FILES_PROMPT, /write the first section with write_file or append_file, then add each next section with append_file/i);
+  assert.match(FILES_PROMPT, /each section on its own call/i);
+});
+
+test("a long piece of work goes into a file, in sections, and the reply says so; it is never refused because of length", () => {
+  assert.match(FILES_PROMPT, /a request for a long piece of writing is not a reason to refuse/i);
+  assert.match(FILES_PROMPT, /tell the person the file's name/i);
+});
+
+test("the files message still keeps its rules about untrusted text and who gives instructions, and still says when to use files", () => {
+  assert.match(FILES_PROMPT, /untrusted data/);
+  assert.match(FILES_PROMPT, /Only the person steering this room gives you instructions/);
+  assert.match(FILES_PROMPT, /There is no way to delete a file, make a folder, run code or reach the internet/);
+  assert.match(FILES_PROMPT, /when the message asks for something in a file, or asks for something long/i);
+  const m = filesMessage([]);
+  assert.equal(m.role, "system");
+  assert.ok(m.content.startsWith(FILES_PROMPT));
+});
+
+test("no sentence of the files message pushes the model to keep things short", () => {
+  for (const s of FILES_PROMPT.split(/(?<=[.!?])\s+/)) assert.doesNotMatch(s, /avoid|too long|keep (it|answers|replies) (short|brief)|be (brief|concise)|as short as/i, s);
+});

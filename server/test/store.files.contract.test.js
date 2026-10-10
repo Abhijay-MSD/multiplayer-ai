@@ -189,6 +189,78 @@ for (const [name, make] of Object.entries(makers)) {
     assert.deepEqual(versions.map((v) => v.version), [7, 6, 5, 4, 3, 2, 1]);
   });
 
+  // ── append: the same rules, in the same transaction as the write ───
+
+  const add = (s, id, name, content, extra = {}) => s.putFile(id, { name, content, append: true, author: "Agent", onBehalfOf: "Alice", limits: LIMITS, ...extra });
+
+  t("append creates a file that is not there, and adds to the end of one that is, as a new version each time", async (s) => {
+    const id = await room(s);
+    const first = await add(s, id, "essay.md", "One\n");
+    assert.deepEqual([first.created, first.unchanged, first.file.version, first.file.size], [true, false, 1, 4]);
+    const second = await add(s, id, "ESSAY.md", "Two\n");
+    assert.deepEqual([second.created, second.file.name, second.file.version, second.file.size, second.file.updated_by, second.file.on_behalf_of], [false, "essay.md", 2, 8, "Agent", "Alice"]);
+    assert.equal((await s.getFile(id, "essay.md")).content, "One\nTwo\n");
+    assert.equal((await s.getFileVersion(id, "essay.md", 1)).content, "One\n");
+    assert.equal((await put(s, id, "essay.md", "whole\n")).file.version, 3, "a write after an append carries on from it");
+  });
+
+  t("append of nothing changes nothing", async (s) => {
+    const id = await room(s);
+    await put(s, id, "a.txt", "x");
+    const r = await add(s, id, "a.txt", "");
+    assert.deepEqual([r.unchanged, r.file.version], [true, 1]);
+  });
+
+  t("append counts toward the size of one file: the whole file is checked, not only the piece", async (s) => {
+    const id = await room(s);
+    await add(s, id, "a.txt", "a".repeat(900));
+    await rejectsWith(add(s, id, "a.txt", "b".repeat(101)), "FILE_TOO_LARGE");
+    assert.equal((await s.getFile(id, "a.txt")).size, 900, "a refused append changed nothing");
+    assert.equal((await add(s, id, "a.txt", "c".repeat(100))).file.size, 1000);
+    await rejectsWith(add(s, id, "new.txt", "n".repeat(1001)), "FILE_TOO_LARGE");
+  });
+
+  t("append counts toward the number of files, and toward the room's total with its kept versions", async (s) => {
+    const id = await room(s);
+    for (const n of ["a", "b", "c", "d", "e"]) await add(s, id, `${n}.txt`, n);
+    await rejectsWith(add(s, id, "f.txt", "f"), "TOO_MANY_FILES");
+    assert.equal((await add(s, id, "a.txt", "more")).created, false);
+
+    const full = await room(s);
+    await put(s, full, "a.txt", "a".repeat(1000));
+    await put(s, full, "b.txt", "b".repeat(1000));
+    await put(s, full, "c.txt", "c".repeat(500)); // 2500 of 3000
+    await put(s, full, "d.txt", "d".repeat(500)); // 3000 of 3000
+    await rejectsWith(add(s, full, "d.txt", "!"), "ROOM_FULL");
+    assert.deepEqual(await s.fileUsage(full), { files: 4, bytes: 3000 }, "nothing changed");
+    assert.deepEqual((await s.listFileVersions(full, "d.txt")).map((v) => v.version), [1]);
+  });
+
+  t("append keeps only the newest versions, like a write", async (s) => {
+    const id = await room(s);
+    for (let i = 0; i < 13; i++) await add(s, id, "log.txt", ".");
+    assert.deepEqual((await s.listFileVersions(id, "log.txt")).map((v) => v.version), [13, 12, 11, 10, 9, 8, 7, 6, 5, 4]);
+  });
+
+  t("append refuses a hostile name and text that is not text, and changes nothing", async (s) => {
+    const id = await room(s);
+    await put(s, id, "a.txt", "keep");
+    for (const name of ["../x", "a/b", ".env", "CON", "a\0b", ""]) await rejectsWith(add(s, id, name, "x"), "CONSTRAINT");
+    await rejectsWith(add(s, id, "a.txt", "a\0b"), "CONSTRAINT");
+    await rejectsWith(add(s, id, "a.txt", "\ud800"), "CONSTRAINT");
+    assert.equal((await s.getFile(id, "a.txt")).content, "keep");
+    await rejectsWith(add(s, "00000000-0000-0000-0000-000000000000", "a.txt", "x"), "CONSTRAINT");
+  });
+
+  t("many appends at once to one file all land, in some order, none lost and none doubled", async (s) => {
+    const id = await room(s);
+    await add(s, id, "race.txt", "0|");
+    await Promise.all(Array.from({ length: 6 }, (_, i) => add(s, id, "race.txt", `w${i}|`)));
+    const got = (await s.getFile(id, "race.txt")).content;
+    assert.deepEqual(got.split("|").filter(Boolean).sort(), ["0", "w0", "w1", "w2", "w3", "w4", "w5"]);
+    assert.equal((await s.getFile(id, "race.txt")).version, 7);
+  });
+
   t("rooms have a files switch (off unless asked) and a count of model calls", async (s) => {
     const off = await s.createSession({ title: "T", task: "x" });
     assert.strictEqual(off.files_enabled, false);

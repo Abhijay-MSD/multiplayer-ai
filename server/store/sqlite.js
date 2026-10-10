@@ -340,16 +340,21 @@ export async function createSqliteStore({
     // ── files ──────────────────────────────────────────────────────
     supportsFiles: true,
 
-    async putFile(sessionId, { name, content, author, onBehalfOf = null, limits }) {
+    // `append: true` adds `content` to the end of the file's newest version (or makes the file), inside the one transaction, so two
+    // appends at once are both kept. Every rule below applies to the whole file that results, not to the piece.
+    async putFile(sessionId, { name, content, author, onBehalfOf = null, append = false, limits }) {
       const n = checkFileName(name);
       if (!n.ok) throw new StoreError("CONSTRAINT", n.message);
       const c = checkFileContent(content);
       if (!c.ok) throw new StoreError("CONSTRAINT", c.message);
-      const size = Buffer.byteLength(content, "utf8");
-      if (size > limits.maxFileBytes) throw new StoreError("FILE_TOO_LARGE", `That file is ${size} bytes; the limit is ${limits.maxFileBytes}.`);
+      const piece = content;
+      if (!append && Buffer.byteLength(content, "utf8") > limits.maxFileBytes) throw new StoreError("FILE_TOO_LARGE", `That file is ${Buffer.byteLength(content, "utf8")} bytes; the limit is ${limits.maxFileBytes}.`);
       const result = tx(() => {
         if (!sql("SELECT 1 FROM sessions WHERE id = ?").get(sessionId)) throw new StoreError("CONSTRAINT", "That room does not exist.");
         const latest = sql("SELECT name, version, content, size, author, on_behalf_of, created_at FROM room_files WHERE session_id = ? AND name_key = ? ORDER BY version DESC LIMIT 1").get(sessionId, n.key);
+        if (append) content = (latest?.content ?? "") + piece;
+        const size = Buffer.byteLength(content, "utf8");
+        if (append && size > limits.maxFileBytes) throw new StoreError("FILE_TOO_LARGE", `That file would be ${size} bytes; the limit is ${limits.maxFileBytes}.`);
         if (latest && latest.content === content) {
           return { file: fileMeta(latest), created: false, unchanged: true };
         }

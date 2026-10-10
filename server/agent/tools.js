@@ -1,4 +1,4 @@
-// The tools the agent may use, and nothing else: list_files, read_file and write_file, on the room's own text files.
+// The tools the agent may use, and nothing else: list_files, read_file, write_file and append_file, on the room's own text files.
 // No delete, no folders, no shell, no network, no code. A file is a row in the room's store and is found by name only,
 // so nothing the model says is ever turned into a path.
 //
@@ -7,6 +7,8 @@
 //   line      the quiet line left in the room's transcript: names and sizes, and for a failure only a category
 //   category  for a failure: BAD_ARGUMENTS, UNKNOWN_TOOL, BAD_NAME, BAD_CONTENT, NOT_FOUND, TOO_LARGE,
 //             TOO_MANY_FILES, ROOM_FULL or UNAVAILABLE
+// append_file is write_file with the text added to the end, inside the store's one call: the same names, limits, kept versions
+// and quiet lines, and every section counts toward them as a write does.
 import { checkFileName } from "../files/names.js";
 import { StoreError } from "../store/errors.js";
 import { redact } from "../secrets.js";
@@ -31,6 +33,16 @@ export const TOOL_DEFINITIONS = [
     parameters: {
       type: "object",
       properties: { name: NAME_PARAM, content: { type: "string", description: "The complete text of the file." } },
+      required: ["name", "content"]
+    }
+  },
+  {
+    name: "append_file",
+    description:
+      "Add text to the end of a text file in this room, creating the file if it is not there. Use it to write a long document in sections, one section on each call. The text is added exactly as given, so start it with a line break if the file does not end with one. The earlier version is kept.",
+    parameters: {
+      type: "object",
+      properties: { name: NAME_PARAM, content: { type: "string", description: "The text to add to the end of the file: the next section." } },
       required: ["name", "content"]
     }
   }
@@ -64,10 +76,12 @@ function cutBytes(text, maxBytes) {
 
 function storeFailure(e, verb, shown, fileLimits) {
   const where = shown ? shown : "a file";
+  const adding = verb === "append to";
   if (e instanceof StoreError) {
+    if (e.code === "FILE_TOO_LARGE" && adding) return fail("TOO_LARGE", `Couldn't ${verb} ${where}: the file would be too large.`, `adding that would make the file too large. One file can hold at most ${fileLimits.maxFileBytes} bytes. Start a new file for the next section.`);
     if (e.code === "FILE_TOO_LARGE") return fail("TOO_LARGE", `Couldn't ${verb} ${where}: the file is too large.`, `that file is too large. One file can hold at most ${fileLimits.maxFileBytes} bytes.`);
-    if (e.code === "TOO_MANY_FILES") return fail("TOO_MANY_FILES", `Couldn't ${verb} ${where}: the room already holds as many files as it can.`, `the room already holds ${fileLimits.maxFiles} files, the most it can. Overwrite one of them instead.`);
-    if (e.code === "ROOM_FULL") return fail("ROOM_FULL", `Couldn't ${verb} ${where}: the room's file space is full.`, "the room's file space is full. Write smaller files or overwrite one.");
+    if (e.code === "TOO_MANY_FILES") return fail("TOO_MANY_FILES", `Couldn't ${verb} ${where}: the room already holds as many files as it can.`, `the room already holds ${fileLimits.maxFiles} files, the most it can. ${adding ? "Add to one of them instead." : "Overwrite one of them instead."}`);
+    if (e.code === "ROOM_FULL") return fail("ROOM_FULL", `Couldn't ${verb} ${where}: the room's file space is full.`, adding ? "the room's file space is full. Write less, or overwrite a file with something smaller." : "the room's file space is full. Write smaller files or overwrite one.");
     if (e.code === "UNSUPPORTED") return fail("UNAVAILABLE", `Couldn't ${verb} ${where}: files aren't available here.`, "files aren't available in this room.");
     if (e.code === "CONSTRAINT") return fail("BAD_CONTENT", `Couldn't ${verb} ${where}: the content isn't text.`, "the content has to be valid UTF-8 text with no NUL characters.");
   }
@@ -117,12 +131,38 @@ async function writeFile({ store, sessionId, author, fileLimits }, args, call) {
   return { ok: true, content: `Saved "${file.name}" as version ${file.version} (${formatBytes(file.size)}). The earlier version is kept.`, line: `Edited ${file.name}, version ${file.version}` };
 }
 
+async function appendFile({ store, sessionId, author, fileLimits }, args, call) {
+  if (!isPlainObject(args) || typeof args.name !== "string" || typeof args.content !== "string") return badArguments("append to", call);
+  const checked = checkFileName(args.name);
+  if (!checked.ok) return fail("BAD_NAME", "Couldn't append to a file: the name isn't allowed.", `the file name isn't allowed. ${NAME_RULE}`);
+  let result;
+  try {
+    // The same call as write_file, with the text added to the end inside it: the same limits, the same kept versions.
+    result = await store.putFile(sessionId, { name: checked.name, content: args.content, append: true, author: "agent", onBehalfOf: author, limits: fileLimits });
+  } catch (e) {
+    return storeFailure(e, "append to", checked.name, fileLimits);
+  }
+  const { file, created, unchanged } = result;
+  if (unchanged) return { ok: true, content: `There was nothing to add to "${file.name}", so nothing changed (still version ${file.version}).`, line: `Saved ${file.name}, no change` };
+  if (created) return { ok: true, content: `Created "${file.name}" (${formatBytes(file.size)}).`, line: `Created ${file.name}, ${formatBytes(file.size)}` };
+  return {
+    ok: true,
+    content: `Added ${formatBytes(Buffer.byteLength(args.content, "utf8"))} to "${file.name}"; it is now ${formatBytes(file.size)} (version ${file.version}). The earlier version is kept.`,
+    line: `Added to ${file.name}, version ${file.version}, ${formatBytes(file.size)}`
+  };
+}
+
 function badArguments(verb, call) {
-  const why = call?.argsError ? "the arguments weren't valid JSON" : verb === "write" ? "write_file needs a name and the file's content, both as text" : "read_file needs a name, as text";
+  const why = call?.argsError
+    ? "the arguments weren't valid JSON"
+    : verb === "write" ? "write_file needs a name and the file's content, both as text"
+    : verb === "append to" ? "append_file needs a name and the text to add, both as text"
+    : "read_file needs a name, as text";
   return fail("BAD_ARGUMENTS", `Couldn't ${verb} a file: the request was malformed.`, `${why}.`);
 }
 
-const RUNNERS = { list_files: listFiles, read_file: readFile, write_file: writeFile };
+const RUNNERS = { list_files: listFiles, read_file: readFile, write_file: writeFile, append_file: appendFile };
+const VERBS = { read_file: "read", write_file: "write", append_file: "append to" };
 
 /**
  * Runs one tool call. `call` is { id, name, args, argsError? } as an adapter produced it from the model's reply.
@@ -135,6 +175,6 @@ export async function executeTool({ call, store, sessionId, author, fileLimits, 
   }
   if (!store?.supportsFiles) return fail("UNAVAILABLE", "Couldn't use files: they aren't available here.", "files aren't available in this room.");
   const ctx = { store, sessionId, author, fileLimits, limits };
-  if (call.argsError && name !== "list_files") return badArguments(name === "read_file" ? "read" : "write", call);
+  if (call.argsError && name !== "list_files") return badArguments(VERBS[name], call);
   return RUNNERS[name](ctx, call.args, call);
 }

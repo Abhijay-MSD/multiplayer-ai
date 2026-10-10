@@ -597,14 +597,14 @@ Qualitative signal matters more than volume at this stage: did any real pair or 
 
 **Not yet done:** a run against a real provider key and a real phone on a real network, and a check of the project name.
 
-**Built since (0.2.0 candidate).** The agent can list, read and write the room's text files (docs/agent-tools.md); Stop and a usage line after each answer; the Files tab, attaching text files, and exporting the conversation and the files; the host's brief and "Your rooms"; retry, search and copy; simple tables and http links in replies. **Fast-follows (post-v0).** Clarifying-question conflict handling; attachments that are not text; anything beyond text files for the agent (code, shell, web: not planned); sharing beyond the same network.
+**Built since (0.2.0 candidate).** The agent can list, read, write and append to the room's text files (docs/agent-tools.md); Stop and a usage line after each answer; the Files tab, attaching text files, and exporting the conversation and the files; the host's brief and "Your rooms"; retry, search and copy; simple tables and http links in replies. **Fast-follows (post-v0).** Clarifying-question conflict handling; attachments that are not text; anything beyond text files for the agent (code, shell, web: not planned); sharing beyond the same network.
 
 ---
 
 ## 25. Open questions
 
 1. ~~Should watchers be able to send directives by default, or should that be a per-session setting?~~ **Resolved (5 Oct 2026):** no. Only the controller can message the agent. Watchers post comments, or ask the controller to hand over the seat (or take it when the controller is away). No per-session setting in v0.
-2. ~~How much agent "tool use" do we allow?~~ **Answered for 0.2.0:** three tools on the room's text files, off in shared rooms by default, and nothing that runs code, uses a shell or reaches the network (docs/agent-tools.md).
+2. ~~How much agent "tool use" do we allow?~~ **Answered for 0.2.0:** four tools (list, read, write and append) on the room's text files, off in shared rooms by default, and nothing that runs code, uses a shell or reaches the network (docs/agent-tools.md).
 3. Does the creator need an account (magic link) in v0, or can even creation be name-only until there is something worth saving?
 4. What is the right default usage cap that protects budget without cutting real sessions short?
 5. Product name: keep "Multiplayer AI" or something else. (Placeholder.)
