@@ -239,6 +239,7 @@ async function reportFailure(session_id, e) {
   console.error(
     `[multiplayer-ai] step failed for ${session_id}: ${failure.category}` +
     (failure.status ? ` (status ${failure.status})` : "") +
+    (failure.retryAfterSeconds !== null ? ` (retry after ${failure.retryAfterSeconds} s)` : "") +
     (failure.detail ? `: ${failure.detail}` : "")
   );
   await writeStatus(session_id, `Agent could not reply: ${failure.message}`);

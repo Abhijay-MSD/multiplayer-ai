@@ -155,10 +155,22 @@ export function categoryOf(e) {
   return "UNKNOWN";
 }
 
+// What the host's terminal may show of the provider's own words: keys are hidden by redact(), and here also organization
+// identifiers (org_ then letters and digits, or the org- shape some providers use) and the query string of an address, which is where
+// an account or a session usually ends up. The address and its path stay.
+const ORG_ID = /\borg_[A-Za-z0-9]+|\borg-[A-Za-z0-9]{8,}/gi;
+const URL_QUERY = /(https?:\/\/[^\s?#"'`<>]*)\?([^\s#"'`<>)\]},;]*)/gi;
+export function maskIdentifiers(text) {
+  // Addresses first, so a whole query goes at once, whatever is in it; then identifiers anywhere else.
+  return String(text ?? "")
+    .replace(URL_QUERY, (_all, base, query) => `${base}?[query hidden]${/[.!?:]+$/.exec(query)?.[0] ?? ""}`)
+    .replace(ORG_ID, "[org hidden]");
+}
+
 /** Wraps any error from a model call as a ProviderFailure with a category and a redacted detail line. */
 export function toProviderFailure(e, provider = null) {
   if (e instanceof ProviderFailure) return e;
-  const detail = escapeForLog(redact(String(e?.message ?? e).split("\n")[0]).slice(0, 300));
+  const detail = escapeForLog(redact(maskIdentifiers(String(e?.message ?? e).split("\n")[0])).slice(0, 300));
   // The hint is read from the whole of what the provider said (the header an adapter kept, the message, and the structured details
   // some providers send), before the detail is cut for the terminal.
   const text = `${String(e?.message ?? e)}\n${e?.errorDetails !== undefined ? safeJson(e.errorDetails) : ""}`;
