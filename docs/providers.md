@@ -118,6 +118,12 @@ What each provider is sent when `MAX_OUTPUT_TOKENS` is blank, and what it does w
 
 When a provider says it stopped a reply at its length limit (Groq and compatible services: `finish_reason` "length"; Claude: `stop_reason` "max_tokens"; Gemini: `finishReason` "MAX_TOKENS"), the part that was written is saved and the room shows "The reply reached its length limit" with a Continue button for the controller.
 
+## Limits per minute
+
+**Per-minute limits depend on the provider, the model and your account, and they change. Look them up in the provider's own documentation and in your account's settings.** A single long task can pass a per-minute limit: every call sends the room's context again, and with file tools on, each call carries what the agent has written so far in the answer, so a document written in several sections uses more tokens per minute than its own length suggests (the real Groq text above says "Limit 8000, Used 5328, Requested 6660": the limit counts what the call asks for as well as what was used). Ask for long work in smaller pieces. What the room is told about a limit is described in [limits.md](limits.md).
+
+Multiplayer AI never puts the provider's own text in the room: no model name, organization, account detail or address. The host's terminal gets the detail, with keys hidden, organization identifiers shown as `[org hidden]` and the query string of an address shown as `[query hidden]`.
+
 ## How long to wait
 
 When a call fails, Multiplayer AI works out how long the provider says to wait and keeps it, as a whole number of seconds, on the failure (`retryAfterSeconds`; none when there is no usable hint). It is read in this order:
@@ -127,4 +133,4 @@ When a call fails, Multiplayer AI works out how long the provider says to wait a
 
 The wait is rounded up to whole seconds. A hint of more than an hour, below nothing, or not a number is treated as no hint, and a header that is not usable does not stop the words from being read. The hint changes only what the room is told; it does not make Multiplayer AI wait or retry any differently than before.
 
-**Only the Groq wording comes from a real failed run**: "Rate limit reached for model … in organization … service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5328, Requested 6660. Please try again in 29.91s." The wording for Claude is NOT CONFIRMED (the `retry-after` header and the error's message were written from its documentation), for Gemini it is NOT CONFIRMED (`retryDelay` was written from the library's type definitions and Google's error format), and for OpenAI-compatible services it is NOT CONFIRMED (services differ). All of it is tested only against stand-ins that answer in the shapes above, so what a real provider sends is not known.
+**Only the Groq wording comes from a real failed run**: "Rate limit reached for model … in organization … service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5328, Requested 6660. Please try again in 29.91s." The wording for Claude is NOT CONFIRMED (the `retry-after` header and the error's message were written from its documentation), for Gemini it is NOT CONFIRMED (`retryDelay` was written from the library's type definitions and Google's error format), and for OpenAI-compatible services it is NOT CONFIRMED (services differ). All of it is tested only against stand-ins that answer in the shapes above, so what a real provider sends is not known. That the room's sentence follows the wait, and the daily and monthly wording that never counts as a short wait, are tested only against stand-ins too.

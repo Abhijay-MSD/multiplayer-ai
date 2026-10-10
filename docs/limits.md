@@ -59,6 +59,23 @@ The agent is told to do what a message asks at the length asked, and to say so a
 
 **Token limits depend on the provider, the model and your account, and they change. Look them up in the provider's own documentation and in your account's settings.** That covers the longest reply a model can write, how many tokens an account may use per minute or per day, and what a provider does with a request that asks for more than its model allows (some refuse it). If a reply is cut short, or a request is refused, check those first, and set `MAX_OUTPUT_TOKENS` to a number your model allows. **None of this has been tested against real providers**: the requests were written from each provider's documentation and run against stand-ins.
 
+## When the provider limits how fast the key can be used
+
+Most providers also limit a key themselves, by tokens or requests per minute, per day or per month. **Per-minute limits depend on the provider, the model and your account, and they change. Look them up in the provider's own documentation and in your account's settings.** A free or new account is often limited far more tightly than a paid one.
+
+**A single long task can pass a per-minute limit.** Every model call sends the room's context again: the instructions, the host's brief, the task, the recent messages (up to `MAX_CONTEXT_TOKENS`), and, when the agent uses files, the tool definitions and everything it has written or read so far in this answer. A task that writes a long document in sections makes several calls, and each one carries the sections written before it, so the tokens used in one minute grow faster than the document does. The limit counts what is asked for as well as what was used. **Ask for long work in smaller pieces**: one part at a time, or a shorter version first, and press Continue between them.
+
+What the room is told is one of two sentences, and never the provider's own words, a model name, an organization, an account detail or an address:
+
+- A wait of 120 seconds or less: "The model provider is limiting how fast this key can be used. Try again in about N seconds." (second, for one)
+- A longer wait, or none: "The model provider is limiting this key. Check the provider's console for the limit, then try again."
+
+A daily or monthly limit, or a billing or credit problem, always gets the second sentence, however short a wait came with it: it is not a wait of seconds. The host's terminal keeps the provider's own detail, with keys, organization identifiers and the query strings of addresses hidden, and says how long the provider asked to wait.
+
+On that line the controller gets a **Continue** button. It sends "Continue from where you stopped" as a message like any other: it counts as a step, and everything that limits a message limits it (see "Sending a message again" below). Only the controller sees it; anyone else's attempt is refused and costs nothing. With the first sentence the button counts down the provider's wait, from when the line was written, and is ready when it is over; a screen reader is told the wait once and told when it is over, and the bar that empties does not move when the person prefers reduced motion. With the second sentence the button is ready at once.
+
+Multiplayer AI does not add any automatic retry for this: the adapters make the same retries as before, and the next try is the person's, by pressing Continue. How the provider's wait is read from its answer is described in [providers.md](providers.md), and **it is tested only against stand-ins**, not against any real provider.
+
 ## Sending a message again
 
 "Send my last message again" (the controller only, off while the agent is working) writes the controller's last message into the room again as a new message and asks the agent to answer it. Because it is a message, everything that limits a message limits it: only the controller can send it, the host's limit on guest messages (a guest who holds control can't use it to get past that limit), `DIRECTIVE_LIMIT_PER_MIN`, the daily step budget and the step cap per room.
