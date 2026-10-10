@@ -4,7 +4,10 @@
 //
 //   node scripts/scan-secrets.mjs           run it from inside the repository
 //
-// Exit 0 when nothing is found, 1 when something is. A match is a prefix plus enough characters after it to look
+// Exit 0 when nothing is found, 1 when something is. It also exits 1, without scanning, in a shallow clone (one that holds only
+// the newest commits, as actions/checkout makes by default): the history it would scan is not there, and a pass would be a
+// claim about commits it never read. Fetch the rest first: `git fetch --unshallow`, or `fetch-depth: 0` on actions/checkout.
+// A match is a prefix plus enough characters after it to look
 // like a real key, so words that merely contain the letters (task-force, a test's made_up_gsk_key) are not matches:
 //   gsk_             a Groq-style key
 //   AIza             a Google API key
@@ -138,6 +141,15 @@ function loadAllow(root) {
 
 function main() {
   const root = git(["rev-parse", "--show-toplevel"], process.cwd()).toString("utf8").trim();
+  if (git(["rev-parse", "--is-shallow-repository"], root).toString("utf8").trim() === "true") {
+    console.log(
+      "This is a shallow clone: git has only part of the history, so history was not scanned, and nothing was scanned at all.\n" +
+        "Get the rest of the history and run this again:\n" +
+        "  git fetch --unshallow\n" +
+        "  in GitHub Actions: set `fetch-depth: 0` on actions/checkout, for the job that runs this."
+    );
+    process.exit(1);
+  }
   const built = builtApp(root);
   const all = [...trackedFiles(root), ...history(root), ...built.hits];
   const { entries, problems } = loadAllow(root);

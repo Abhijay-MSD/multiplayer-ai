@@ -20,7 +20,7 @@ Each line starts from the project folder. All of them need to pass before a chan
 (cd server && npm ci && npm test)                                                      # server tests: no network, no key
 (cd web && npm ci && cd qa && npm ci && npx playwright install chromium && npm test)   # browser tests
 npm run check:copy                                                                     # banned phrases and product names in the page text and docs
-node scripts/scan-secrets.mjs                                                          # anything shaped like a key, in files, history and the built app
+node scripts/scan-secrets.mjs                                                          # anything shaped like a key, in files, history and the built app (a shallow clone is refused: git fetch --unshallow first)
 ```
 
 `.github/workflows/ci.yml` runs on every pull request and on pushes to main, in two jobs that do not wait for each other. The checks job runs the server tests on Node 22.13.0 and 24, and on 24 also the copy check, the build, the secrets scan and the audit. The browser job runs the browser tests once on Linux and once on macOS, on Node 24, and keeps `web/qa/.results` for 7 days when they fail. CI has not passed yet: its first run failed in the browser tests, and the changed workflow has not run on GitHub; the file says so at the top. `.github/dependabot.yml` asks for update pull requests once a month, at most two open per folder, never for a new major version (the GitHub Actions included) and, in `server`, never for a new minor version of `@google/generative-ai` (it is 0.x); `react` and `react-dom` come in one pull request. It has not been used yet.

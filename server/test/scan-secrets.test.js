@@ -144,3 +144,69 @@ test("an allow entry must be exact and must still match something", () => {
   commit(dir, "e");
   assert.match(everything(scan(dir)), /needs a reason/);
 });
+
+// ── a shallow clone cannot show history ────────────────────────────────
+// actions/checkout fetches one commit unless told otherwise. A scan of that one commit says "nothing in history" about history it never saw.
+
+/** A copy of `dir` holding only its newest commit, the way actions/checkout makes one by default. */
+function shallowCopy(dir) {
+  const into = path.join(tempDir("scan-shallow-"), "clone");
+  git(dir, "clone", "-q", "--depth", "1", `file://${dir}`, into);
+  assert.equal(git(into, "rev-parse", "--is-shallow-repository").trim(), "true", "the copy really is shallow");
+  return into;
+}
+
+test("a shallow clone is refused: it says history was not scanned and how to get it, instead of passing", () => {
+  const dir = repo();
+  write(dir, "config.txt", `token=${SECRETS.groq}\n`);
+  commit(dir, "add");
+  write(dir, "config.txt", "token=\n");
+  commit(dir, "remove");
+  assert.equal(scan(dir).status, 1, "a full clone finds the key in history");
+
+  const shallow = shallowCopy(dir);
+  const r = scan(shallow);
+  const out = everything(r);
+  assert.equal(r.status, 1, `it must not pass: ${out}`);
+  assert.match(out, /shallow/i);
+  assert.match(out, /history was not scanned/i);
+  assert.match(out, /fetch-depth: 0/, "and says what to set in GitHub Actions");
+  assert.match(out, /git fetch --unshallow/, "and what to run anywhere else");
+  assert.doesNotMatch(out, /No key-shaped strings found/, "it does not also say everything is fine");
+  assert.ok(!out.includes(SECRETS.groq));
+});
+
+test("a shallow clone with nothing in it is refused too, not only one that hides a key", () => {
+  const dir = repo();
+  write(dir, "a.js", "x\n");
+  commit(dir, "one");
+  write(dir, "a.js", "y\n");
+  commit(dir, "two");
+  const r = scan(shallowCopy(dir));
+  assert.equal(r.status, 1, everything(r));
+  assert.match(everything(r), /shallow/i);
+});
+
+test("after git fetch --unshallow the same clone is scanned, history included", () => {
+  const dir = repo();
+  write(dir, "config.txt", `token=${SECRETS.groq}\n`);
+  commit(dir, "add");
+  write(dir, "config.txt", "token=\n");
+  commit(dir, "remove");
+  const shallow = shallowCopy(dir);
+  assert.equal(scan(shallow).status, 1);
+  git(shallow, "fetch", "-q", "--unshallow");
+  const r = scan(shallow);
+  assert.equal(r.status, 1);
+  assert.match(everything(r), /history +[0-9a-f]+ +config\.txt:1 +gsk_/, "now it sees the old commit, and reports the key it holds");
+  assert.doesNotMatch(everything(r), /shallow/i);
+
+  const clean = repo();
+  write(clean, "a.js", "x\n");
+  commit(clean, "one");
+  write(clean, "a.js", "y\n");
+  commit(clean, "two");
+  const c = shallowCopy(clean);
+  git(c, "fetch", "-q", "--unshallow");
+  assert.equal(scan(c).status, 0, "a clean repository passes once it is complete");
+});
