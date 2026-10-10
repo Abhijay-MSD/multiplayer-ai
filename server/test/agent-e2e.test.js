@@ -65,7 +65,7 @@ function call(base, method, route, { headers = {}, body } = {}) {
 }
 
 test("each provider's adapter writes a file through the real launcher, in that provider's own format", { timeout: 300_000 }, async () => {
-  for (const d of ["server/node_modules", "web/node_modules"]) assert.ok(fs.existsSync(path.join(ROOT, d)), `${d} is missing. Run "npm ci" in server/ and web/ first; this test does not install anything.`);
+  for (const d of ["server/node_modules", "web/node_modules"]) assert.ok(fs.existsSync(path.join(ROOT, d)), `${d} is missing. Run "npm ci" in server/ and web/ first; this test does not install anything. CI installs and builds before it runs the server tests.`);
   const data = path.join(tempDir(), "data");
   const run = launch(data);
   await until(() => /Sign-in link[^\n]*\n\s+http\S+/.test(run.out) || run.exited, 120_000, "Multiplayer AI to start");

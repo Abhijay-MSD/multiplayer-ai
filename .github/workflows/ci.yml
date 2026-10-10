@@ -1,9 +1,10 @@
-# NOT PASSED YET. This workflow has run on GitHub once: install, build and the server tests passed, and the browser tests failed, so the steps
-# after them never ran. The browser tests, the checks and the dependency file were changed after that run and have not run on GitHub since.
+# NOT PASSED YET. This workflow has run on GitHub once, on main: both browser jobs passed, and both checks jobs failed at the server tests
+# (four tests that need web/node_modules, which was not installed yet), so the copy check, the web install, the build, the secrets scan and
+# the audit never ran there. The order of the checks job was changed after that run and has not run on GitHub since.
 # The action versions below are tags, not commit SHAs, and were not checked against GitHub (actions/upload-artifact has not run at all).
 # When it has passed once, delete this note.
 #
-# Two jobs, and neither waits for the other: the cheap checks (server tests, copy check, build, secrets scan, audit) and the browser tests.
+# Two jobs, and neither waits for the other: the checks (copy check, secrets scan, installs, build, server tests, audit) and the browser tests.
 # A browser test that fails, or flakes, cannot hide a check, and the other way round.
 name: CI
 
@@ -37,28 +38,32 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - name: Install the server
-        run: npm ci --prefix server
-
-      - name: Server tests
-        run: npm test
-
-      # Everything below runs on Node 24 only. The older Node runs the server tests and nothing else.
+      # The two checks that need no install come first, so a banned phrase or a key is reported without waiting for npm.
       - name: Copy check
         if: matrix.node == '24'
         run: npm run check:copy
 
-      - name: Install the web app
+      - name: Secrets scan
         if: matrix.node == '24'
+        run: node scripts/scan-secrets.mjs # the history, the tracked files, and web/dist if it is there (it is not yet: see the rescan below)
+
+      # The server tests start the real launcher, which needs web/node_modules, and they fail when it is missing. So the packages
+      # are installed and the web app is built before them, on both Nodes.
+      - name: Install the server
+        run: npm ci --prefix server
+
+      - name: Install the web app
         run: npm ci --prefix web
 
       - name: Build the web app
-        if: matrix.node == '24'
         run: npm run build
 
-      - name: Secrets scan
+      - name: Server tests
+        run: npm test
+
+      - name: Secrets scan of the built app
         if: matrix.node == '24'
-        run: node scripts/scan-secrets.mjs # reads web/dist too, so it comes after the build
+        run: node scripts/scan-secrets.mjs # web/dist exists now, so this is the scan that reads it
 
       - name: Audit (high and above)
         if: matrix.node == '24'

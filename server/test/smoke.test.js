@@ -42,7 +42,7 @@ after(async () => {
 
 function prerequisites() {
   for (const dir of ["server/node_modules", "web/node_modules"]) {
-    assert.ok(fs.existsSync(path.join(ROOT, dir)), `${dir} is missing. Run "npm ci" in server/ and in web/ first; this test does not install anything.`);
+    assert.ok(fs.existsSync(path.join(ROOT, dir)), `${dir} is missing. Run "npm ci" in server/ and in web/ first; this test does not install anything. CI installs and builds before it runs the server tests.`);
   }
 }
 

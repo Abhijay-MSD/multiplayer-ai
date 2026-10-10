@@ -45,19 +45,60 @@ test("the cheap checks come first, in a job of their own, so a browser test cann
   assert.match(stepNamed(jobs.checks, "Audit"), /npm audit --audit-level=high --prefix server\n\s+npm audit --audit-level=high --prefix web/);
   assert.match(stepNamed(jobs.checks, "Secrets scan"), /scripts\/scan-secrets\.mjs/);
   assert.match(stepNamed(jobs.checks, "Copy check"), /npm run check:copy/);
-  // The secrets scan reads web/dist, so the build comes before it, and it reads the whole history.
-  const order = stepsOf(jobs.checks).map((t) => t.match(/name: (.*)/)?.[1] ?? "");
-  assert.ok(order.findIndex((n) => n.startsWith("Build")) < order.indexOf("Secrets scan"));
+  // The secrets scan reads the whole history, so the job fetches all of it (the scan refuses a shallow clone).
   assert.match(jobs.checks, /fetch-depth: 0/);
   assert.doesNotMatch(jobs.checks, /playwright|web\/qa/);
 });
 
-test("the older Node runs the server tests and nothing else; the rest runs on Node 24", () => {
+const names = () => stepsOf(jobs.checks).map((t) => t.match(/name: (.*)/)?.[1] ?? "");
+const at = (name) => {
+  const i = names().findIndex((n) => n === name || n.startsWith(`${name} (`));
+  assert.ok(i >= 0, `${name} is a step of the checks job`);
+  return i;
+};
+
+test("the checks that need no install come first, then the installs and the build, then the server tests, then the audit", () => {
+  const cheap = ["Copy check", "Secrets scan"];
+  const installs = ["Install the server", "Install the web app"];
+  for (const c of cheap) for (const i of installs) assert.ok(at(c) < at(i), `${c} comes before ${i}, so a banned phrase or a key is reported without waiting for npm`);
+  assert.ok(at("Build the web app") > at("Install the web app"), "the build comes after the web app's packages are installed");
+  for (const before of [...installs, "Build the web app"]) {
+    assert.ok(at(before) < at("Server tests"), `${before} comes before the server tests: the smoke test and the agent test need web/node_modules and fail without them`);
+  }
+  assert.ok(at("Server tests") < at("Audit"), "the audit comes last, after the tests");
+});
+
+test("the secrets scan runs again on the built app once it is built, so web/dist is still scanned in CI", () => {
+  const again = stepsOf(jobs.checks).filter((t) => /scripts\/scan-secrets\.mjs/.test(t));
+  assert.equal(again.length, 2, "once before the installs, once after the build");
+  assert.ok(at("Secrets scan of the built app") > at("Build the web app"));
+});
+
+test("the two checks that run before any install import nothing but Node's own modules and git, so they really need no install", () => {
+  for (const file of ["scripts/check-copy.mjs", "scripts/scan-secrets.mjs"]) {
+    const imports = [...read(file).matchAll(/^import .* from "([^"]+)";?$/gm)].map((m) => m[1]);
+    assert.ok(imports.length > 0, file);
+    for (const spec of imports) assert.match(spec, /^node:/, `${file} imports ${spec}, which is not a Node module`);
+    assert.doesNotMatch(read(file), /\brequire\(|import\(/, `${file} loads nothing else`);
+  }
+});
+
+test("the tests that need the installed web app fail loudly, never skip, and say that CI installs and builds first", () => {
+  for (const file of ["server/test/smoke.test.js", "server/test/agent-e2e.test.js"]) {
+    const src = read(file);
+    const msg = src.match(/assert\.ok\(fs\.existsSync\(path\.join\(ROOT, (?:dir|d)\)\), `([^`]*)`/)?.[1];
+    assert.ok(msg, `${file} asserts that web/node_modules exists`);
+    assert.match(msg, /npm ci/);
+    assert.match(msg, /CI installs and builds before it runs the server tests/, file);
+    assert.doesNotMatch(src, /\{ ?skip|t\.skip\(|\.skip\(/, `${file} has no skip`);
+  }
+});
+
+test("both Nodes install, build and run the server tests; the copy check, the secrets scans and the audit run on Node 24 only", () => {
   assert.match(jobs.checks, /node: \["22\.13\.0", "24"\]/);
   assert.match(jobs.checks, /runs-on: ubuntu-latest/);
-  const steps = stepsOf(jobs.checks);
-  const everywhere = ["Install the server", "Server tests"];
-  for (const t of steps) {
+  const everywhere = ["Install the server", "Install the web app", "Build the web app", "Server tests"];
+  for (const t of stepsOf(jobs.checks)) {
     const name = t.match(/name: (.*)/)?.[1];
     if (!name) continue; // actions/checkout, actions/setup-node
     if (everywhere.includes(name)) assert.doesNotMatch(t, /^\s+if:/m, `${name} runs on both Nodes`);
