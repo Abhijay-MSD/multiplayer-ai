@@ -1,5 +1,5 @@
 // Run: node --test test/   (no network)
-// The CI workflow and the Dependabot file say what the docs say they do. The workflow has not passed on GitHub yet; these
+// The CI workflow and the Dependabot file say what the docs say they do. The workflow has passed on GitHub; these
 // tests only check what can be checked by reading the files.
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -130,8 +130,14 @@ test("the test output is kept for 7 days, only when something failed, and it is 
   assert.match(read("web/qa/playwright.config.js"), /outputDir: "\.\/\.results"/);
 });
 
-test("it says at the top that it has not passed yet", () => {
-  assert.match(ci.split("\n").slice(0, 5).join("\n"), /NOT PASSED YET/);
+test("it says at the top what is true: it runs on every push to main and every pull request, it has passed on GitHub, and what is not exercised", () => {
+  const top = ci.split("\n").slice(0, 10).join("\n");
+  assert.doesNotMatch(top, /NOT PASSED YET|has not passed|never ran|has not run on GitHub/i);
+  assert.match(top, /every push to main and every pull request/);
+  assert.match(top, /has passed on GitHub/);
+  assert.match(top, /four jobs/);
+  assert.match(top, /tags, not commit SHAs/);
+  assert.match(top, /upload-artifact runs only when a browser test fails/);
 });
 
 // ── Dependabot ──────────────────────────────────────────────────────

@@ -1,8 +1,10 @@
-# NOT PASSED YET. This workflow has run on GitHub once, on main: both browser jobs passed, and both checks jobs failed at the server tests
-# (four tests that need web/node_modules, which was not installed yet), so the copy check, the web install, the build, the secrets scan and
-# the audit never ran there. The order of the checks job was changed after that run and has not run on GitHub since.
-# The action versions below are tags, not commit SHAs, and were not checked against GitHub (actions/upload-artifact has not run at all).
-# When it has passed once, delete this note.
+# This workflow runs on every push to main and every pull request. It has passed on GitHub: all four jobs (the checks on Node 22.13.0
+# and Node 24, and the browser tests on Linux and macOS) passed. What it covers: the copy check, the secrets scan (the whole history,
+# and the built app), the installs, the build, the server tests and the audit at high severity, on Linux; and the browser tests in
+# Chromium, on Linux and macOS. What it does not: Windows, Firefox, Safari, the Docker test, the live Supabase tests, and the QR decoding
+# tests, which need macOS and are skipped in the checks job, which runs on Linux.
+# The action versions below are tags, not commit SHAs. actions/upload-artifact runs only when a browser test fails, so a passing run
+# does not exercise it.
 #
 # Two jobs, and neither waits for the other: the checks (copy check, secrets scan, installs, build, server tests, audit) and the browser tests.
 # A browser test that fails, or flakes, cannot hide a check, and the other way round.
