@@ -346,3 +346,40 @@
   margin-left: var(--space-2);
   color: var(--danger, var(--text));
 }
+
+/* While the provider's wait is running: the seconds, and a bar that empties. Only the bar moves, and not at all when motion is not welcome. */
+.continueWaiting {
+  color: var(--text-muted);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.continueCountdown {
+  margin-left: var(--space-2);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.continueBar {
+  display: inline-block;
+  width: 48px;
+  height: 4px;
+  margin-left: var(--space-2);
+  vertical-align: middle;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.continueBar > span {
+  display: block;
+  height: 100%;
+  background: var(--text-muted);
+  transition: width 1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .continueBar > span {
+    transition: none;
+  }
+}

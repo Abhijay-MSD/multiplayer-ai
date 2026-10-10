@@ -3,6 +3,7 @@ import { formatClock } from "../lib/time";
 import { Markdown } from "../lib/markdown";
 import { CopyMessage } from "./CopyMessage";
 import { ContinueButton } from "./ContinueButton";
+import { limitWait } from "../lib/continue";
 
 function snippet(text, max = 70) {
   const flat = text.replace(/\s+/g, " ").trim();
@@ -18,7 +19,7 @@ export function TranscriptEntry({ event, identityColor, role, replyTarget, onCon
     return (
       <div className={`${styles.entry} ${styles.systemLine}`} data-part="entry" data-kind="system">
         {event.content}
-        {onContinue && <ContinueButton onContinue={onContinue} />}
+        {onContinue && <ContinueButton onContinue={onContinue} waitSeconds={limitWait(event.content)?.seconds ?? null} writtenAt={event.created_at} />}
       </div>
     );
   }
