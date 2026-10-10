@@ -31,7 +31,7 @@ The Claude adapter (`server/providers/anthropic.js`) uses plain HTTPS requests, 
 **Read from the provider's documentation on 9 October 2026** (the Tool use overview and Handle tool calls pages on platform.claude.com):
 
 - the address, `https://api.anthropic.com/v1/messages` (POST), and the headers `x-api-key`, `anthropic-version: 2023-06-01` and `content-type: application/json`
-- the request's `model`, `max_tokens` (required, so 4096 is sent when nothing sets a cap) and `messages`
+- the request's `model`, `max_tokens` (required, so 16000 is sent when nothing sets a cap) and `messages`
 - tool calling, in the shape described under [Tool calling](#tool-calling)
 
 **Not confirmed against the documentation** (what the adapter was written to, pinned by tests that don't prove it right):
@@ -103,7 +103,11 @@ What the provider actually said goes to the terminal Multiplayer AI runs in, wit
 
 ## How long a reply may be
 
-`MAX_OUTPUT_TOKENS` (see [limits.md](limits.md)) is the most one reply is asked for. What each provider is sent when it is blank, and what it does with a number:
+`MAX_OUTPUT_TOKENS` (see [limits.md](limits.md)) is the most one reply is asked for.
+
+**Token limits depend on the provider, the model and your account, and they change. Look them up in the provider's own documentation and in your account's settings; do not rely on a number in this file.** That covers the longest reply a model can write, the room it needs for its own thinking, how many tokens an account may use per minute or per day, and what the provider does when a request asks for more than its model allows (some refuse the request). **None of this has been tested against real providers.** The requests below were written from each provider's documentation (Gemini's from the library's type definitions) and run against stand-ins that answer in the same shape, so what a real provider does with them is not known.
+
+What each provider is sent when `MAX_OUTPUT_TOKENS` is blank, and what it does with a number:
 
 | Provider | `MAX_OUTPUT_TOKENS` blank | `MAX_OUTPUT_TOKENS` set to N |
 |---|---|---|

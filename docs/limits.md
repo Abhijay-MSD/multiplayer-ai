@@ -57,7 +57,7 @@ defaults in the table above.
 
 The agent is told to do what a message asks at the length asked, and to say so and write in parts when the work will not fit in one reply. When the provider reports that it stopped a reply at its own length limit, the part that was written is saved as the reply, and the room shows the line **The reply reached its length limit** with a **Continue** button. Only the controller sees the button. It sends "Continue from where you stopped" as a message like any other, so everything that limits a message limits it: only the controller can send it, the host's limit on guest messages, `DIRECTIVE_LIMIT_PER_MIN`, the daily step budget and the step cap per room, and it counts as a step. For that message the agent is shown the start and the end of its newest reply, so it can find where it stopped.
 
-These limits have not been tested against real providers.
+**Token limits depend on the provider, the model and your account, and they change. Look them up in the provider's own documentation and in your account's settings.** That covers the longest reply a model can write, how many tokens an account may use per minute or per day, and what a provider does with a request that asks for more than its model allows (some refuse it). If a reply is cut short, or a request is refused, check those first, and set `MAX_OUTPUT_TOKENS` to a number your model allows. **None of this has been tested against real providers**: the requests were written from each provider's documentation and run against stand-ins.
 
 ## Sending a message again
 
