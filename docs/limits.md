@@ -28,6 +28,7 @@ typo can't quietly turn into the default.
 | `TOOL_RESULT_KB` | 20 | The most a tool result fed back to the model may hold |
 | `DIRECTIVE_SECONDS` | 120 | Time to answer one message, when the agent uses file tools |
 | `MODEL_CALLS_PER_ROOM` | 200 | Model calls one room may make in all |
+| `MAX_OUTPUT_TOKENS` | blank | The longest answer one reply may be asked for, in tokens (see below) |
 
 "Lower only": the database checks and the web inputs are fixed at 4000 and 120
 characters, so these two settings can be set below that, never above. The server
@@ -46,6 +47,17 @@ the agent per room. Set any of the three to a whole number to turn it on. Everyt
 keeps its default, including the per-person pacing and the cap on agent replies per
 room (`MAX_STEPS_PER_SESSION`, 50 if blank). With Supabase storage all three keep the
 defaults in the table above.
+
+## How long a reply may be
+
+`MAX_OUTPUT_TOKENS` is the most one reply is asked for, in tokens (a token is a few characters; a word is about 1.3 tokens).
+
+- **Blank:** what is sent depends on the provider. One provider's API makes the caller send a number, so Multiplayer AI sends 16000 tokens (roughly 12000 words) to it; to the others it sends no cap, and the provider's own default applies. That default depends on the provider, the model and your account: look it up. The list is in [providers.md](providers.md).
+- **Set to a number:** it applies to every provider. Where the provider's limit counts the model's thinking tokens too, room for the thinking is added on top, so the number limits the answer, not the reasoning. A model whose own maximum is lower than the number may refuse the request.
+
+The agent is told to do what a message asks at the length asked, and to say so and write in parts when the work will not fit in one reply. When the provider reports that it stopped a reply at its own length limit, the part that was written is saved as the reply, and the room shows the line **The reply reached its length limit** with a **Continue** button. Only the controller sees the button. It sends "Continue from where you stopped" as a message like any other, so everything that limits a message limits it: only the controller can send it, the host's limit on guest messages, `DIRECTIVE_LIMIT_PER_MIN`, the daily step budget and the step cap per room, and it counts as a step. For that message the agent is shown the start and the end of its newest reply, so it can find where it stopped.
+
+These limits have not been tested against real providers.
 
 ## Sending a message again
 

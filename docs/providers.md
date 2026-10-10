@@ -100,3 +100,16 @@ key will be sent to. A redirect is refused, so a key cannot be sent on to a diff
 
 A category, such as "The model provider didn't accept the API key" or "The model provider is busy right now".
 What the provider actually said goes to the terminal Multiplayer AI runs in, with keys hidden, and nowhere else.
+
+## How long a reply may be
+
+`MAX_OUTPUT_TOKENS` (see [limits.md](limits.md)) is the most one reply is asked for. What each provider is sent when it is blank, and what it does with a number:
+
+| Provider | `MAX_OUTPUT_TOKENS` blank | `MAX_OUTPUT_TOKENS` set to N |
+|---|---|---|
+| Groq | no cap sent: Groq's own default for the model | `max_completion_tokens` of N plus room for reasoning (512, 1024 or 2048 by `GROQ_REASONING_EFFORT`), because Groq's limit counts reasoning tokens |
+| Gemini | no cap sent: Gemini's own default for the model | `maxOutputTokens` of N plus room for thinking (128 to 2048 by `GEMINI_THINKING_LEVEL`), because Gemini's limit counts thinking tokens |
+| Claude | `max_tokens` of 16000, because the API needs a number | `max_tokens` of N |
+| OpenAI-compatible | no cap sent: the service's own default | `max_tokens` of N |
+
+When a provider says it stopped a reply at its length limit (Groq and compatible services: `finish_reason` "length"; Claude: `stop_reason` "max_tokens"; Gemini: `finishReason` "MAX_TOKENS"), the part that was written is saved and the room shows "The reply reached its length limit" with a Continue button for the controller.

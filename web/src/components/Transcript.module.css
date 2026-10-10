@@ -316,3 +316,33 @@
   text-underline-offset: 2px;
   overflow-wrap: anywhere;
 }
+
+/* "Continue", on the status line that says a reply reached its length limit. */
+.continueButton {
+  margin-left: var(--space-2);
+  height: 24px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  vertical-align: middle;
+}
+
+.continueButton:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--hover-bg);
+}
+
+.continueButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.continueError {
+  margin-left: var(--space-2);
+  color: var(--danger, var(--text));
+}

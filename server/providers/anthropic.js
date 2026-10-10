@@ -13,12 +13,12 @@
 import { getSettings } from "../settings.js";
 import { NoKeyError } from "./failure.js";
 import { normalizeMessages } from "./groq.js";
+import { DEFAULT_MAX_OUTPUT_TOKENS } from "./defaults.js"; // the API requires max_tokens, so a call with no cap still sends one
 import { escapeForLog } from "../safe-text.js";
 import { splitAtTools, parseToolArguments, normalizeToolCalls, usageOf } from "./tool-format.js";
 
 export const ENDPOINT = "https://api.anthropic.com/v1/messages";
 export const API_VERSION = "2023-06-01";
-const DEFAULT_MAX_TOKENS = 4096; // the API requires max_tokens, so a call with no cap still sends one
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 1000;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -78,7 +78,7 @@ async function generate(model, shaped, { maxOutputTokens, label, fetchImpl, cred
     headers: { "content-type": "application/json", "x-api-key": apiKey(credentials), "anthropic-version": API_VERSION },
     body: JSON.stringify({
       model,
-      max_tokens: maxOutputTokens || DEFAULT_MAX_TOKENS,
+      max_tokens: maxOutputTokens || DEFAULT_MAX_OUTPUT_TOKENS,
       ...(shaped.system ? { system: shaped.system } : {}),
       ...(tools?.length ? { tools: claudeTools(tools) } : {}),
       messages: shaped.turns
@@ -94,7 +94,7 @@ async function generate(model, shaped, { maxOutputTokens, label, fetchImpl, cred
   const blocks = Array.isArray(body.content) ? body.content : [];
   const text = blocks.filter((b) => b?.type === "text" && typeof b.text === "string").map((b) => b.text).join("").trim();
   const toolCalls = normalizeToolCalls(blocks.filter((b) => b?.type === "tool_use").map((b) => ({ id: b.id, name: b.name, ...parseToolArguments(b.input) })));
-  return { text, toolCalls, usage: usageOf(body.usage?.input_tokens, body.usage?.output_tokens) };
+  return { text, toolCalls, usage: usageOf(body.usage?.input_tokens, body.usage?.output_tokens), stoppedForLength: body.stop_reason === "max_tokens" };
 }
 
 /** callModel({ messages }) -> { text, toolCalls, model }. Same contract as the other adapters. */
@@ -118,7 +118,7 @@ export async function callModel({
   for (let attempt = 0; ; attempt++) {
     try {
       const r = await generate(model, shaped, { maxOutputTokens, label, fetchImpl: send, credentials, tools });
-      return { text: r.text || (r.toolCalls.length ? "" : "(no response)"), toolCalls: r.toolCalls, model, usage: r.usage };
+      return { text: r.text || (r.toolCalls.length ? "" : "(no response)"), toolCalls: r.toolCalls, model, usage: r.usage, stoppedForLength: r.stoppedForLength };
     } catch (e) {
       if (!(e instanceof ClaudeError) || !isRetryable(e) || attempt >= maxRetries) throw e;
       const delay = baseDelayMs * 2 ** attempt * (0.75 + Math.random() * 0.5);

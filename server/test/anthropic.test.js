@@ -60,7 +60,7 @@ test("sends one POST to the messages address with the key and version in headers
   assert.equal(body.max_tokens, 300);
   assert.deepEqual(body.messages, [{ role: "user", content: "hi" }, { role: "assistant", content: "hello" }, { role: "user", content: "again" }]);
   assert.ok(!seen.url.includes(KEY) && !seen.init.body.includes(KEY));
-  assert.deepEqual(out, { text: "hello", toolCalls: [], model: DEFAULT_MODELS.claude, usage: { inputTokens: 11, outputTokens: 4 } });
+  assert.deepEqual(out, { text: "hello", toolCalls: [], model: DEFAULT_MODELS.claude, usage: { inputTokens: 11, outputTokens: 4 }, stoppedForLength: false });
 });
 
 test("max_tokens is always sent, because the API needs it; with no cap a generous default is used", async () => {

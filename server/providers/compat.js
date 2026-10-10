@@ -76,7 +76,7 @@ export async function callModel({
   for (let attempt = 0; ; attempt++) {
     try {
       const r = await generate(t, normalized, { maxOutputTokens, label, fetchImpl: send, tools });
-      return { text: r.text || (r.toolCalls.length ? "" : "(no response)"), toolCalls: r.toolCalls, model: t.model, usage: r.usage };
+      return { text: r.text || (r.toolCalls.length ? "" : "(no response)"), toolCalls: r.toolCalls, model: t.model, usage: r.usage, stoppedForLength: r.stoppedForLength };
     } catch (e) {
       if (!isRetryable(e.status) || attempt >= maxRetries) throw e;
       const delay = BASE_DELAY_MS * 2 ** attempt * (0.75 + Math.random() * 0.5);

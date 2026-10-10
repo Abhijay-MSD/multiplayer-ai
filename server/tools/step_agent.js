@@ -15,6 +15,7 @@ import { TOOL_DEFINITIONS } from "../agent/tools.js";
 import { filesMessage } from "../agent/prompt.js";
 import { usageLine } from "../agent/usage.js";
 import { fileLimits, loopLimits } from "../files/limits.js";
+import { LENGTH_LIMIT_LINE } from "../agent/length.js";
 import { NOTICE_NO_FORMAT, NOTICE_REJECTED, TOOL_FORMAT_CONFIRMED, firstNoticeFor, toolsTurnedOff, turnToolsOff } from "../agent/support.js";
 
 // Test seam: the database and the model call can be swapped for fakes. `db` stays
@@ -308,12 +309,13 @@ async function runStep({ session_id, directiveId, clearIfIdle, signal }) {
     else if (firstNoticeFor(session_id)) await writeStatus(session_id, NOTICE_NO_FORMAT);
   }
 
-  let text, model, usedFallback, outcome = null, modelCalls = 1, toolCalls = 0, usage = null, usageComplete = false;
+  let text, model, usedFallback, outcome = null, modelCalls = 1, toolCalls = 0, usage = null, usageComplete = false, stoppedForLength = false;
   if (!useTools) {
     try {
       const r = await deps.call({ messages, signal });
       ({ text, model, usedFallback } = r);
       usage = r.usage ?? null;
+      stoppedForLength = Boolean(r.stoppedForLength);
       usageComplete = Boolean(usage);
     } catch (e) {
       if (!signal.aborted) throw e;
@@ -342,6 +344,7 @@ async function runStep({ session_id, directiveId, clearIfIdle, signal }) {
       }
     });
     ({ text, model, usedFallback, modelCalls, toolCalls, usage, usageComplete } = outcome);
+    stoppedForLength = outcome.stoppedForLength && !outcome.stopped; // a loop that ended for another reason has said that reason
     if (outcome.stopped?.line) await writeStatus(session_id, outcome.stopped.line);
   }
 
@@ -351,6 +354,7 @@ async function runStep({ session_id, directiveId, clearIfIdle, signal }) {
   if (stopped) {
     if (outcome?.stopped?.reason !== "stopped") await writeStatus(session_id, signal.reason?.stoppedBy ? `Stopped by ${signal.reason.stoppedBy}` : "Stopped");
     text = "";
+    stoppedForLength = false;
   }
 
   // ── 4. Persist the agent_message event ─────────────────────────
@@ -364,6 +368,8 @@ async function runStep({ session_id, directiveId, clearIfIdle, signal }) {
     : null;
 
   nudge(session_id); // viewers get the reply now, not after the step_count write
+  // The provider cut the answer at its own limit: say so in one line, which is where the Continue button is drawn.
+  if (stoppedForLength && event) await writeStatus(session_id, LENGTH_LIMIT_LINE);
   await writeStatus(session_id, usageLine({ modelCalls, toolCalls, usage, usageComplete }));
 
   // ── 5. Increment step_count, and lower agent_working if idle, together ──

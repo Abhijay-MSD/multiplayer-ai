@@ -35,12 +35,21 @@ const MAX_TASK_CHARS = 3000; // cap for the pinned original task
 const FETCH_LIMIT = 1000; // newest candidate events considered per step
 
 export const TRUNCATED_MARK = " …[truncated]";
+// The newest reply is the one "continue from where you stopped" is about, so when it is long it keeps its end, which is where it
+// stopped, and a little of its start. Every older reply is cut at its start, as before.
+const KEEP_START_CHARS = 500;
+const KEEP_END_CHARS = 3500;
+export const MIDDLE_MARK = "\n…[the middle of this message is not shown]…\n";
 
 export const estimateTokens = (text) => Math.ceil(String(text ?? "").length / 4);
 
 export function maxContextTokens() {
   const n = Number(process.env.MAX_CONTEXT_TOKENS);
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : DEFAULT_MAX_CONTEXT_TOKENS;
+}
+
+function capKeepingEnd(text) {
+  return text.length > KEEP_START_CHARS + KEEP_END_CHARS ? text.slice(0, KEEP_START_CHARS) + MIDDLE_MARK + text.slice(-KEEP_END_CHARS) : text;
 }
 
 function cap(text, limit) {
@@ -76,8 +85,9 @@ export function buildContext({ session, events, participants = [], directiveId =
       (e.kind === "agent_message" || e.id < cutoff)
   );
 
+  const newestReply = [...candidates].reverse().find((e) => e.kind === "agent_message")?.id;
   const toMessage = (e, truncate) => {
-    const text = truncate ? cap(e.content, MAX_EVENT_CHARS) : e.content;
+    const text = !truncate ? e.content : e.id === newestReply ? capKeepingEnd(e.content) : cap(e.content, MAX_EVENT_CHARS);
     return e.kind === "directive"
       ? { role: "user", content: `[${e.author}]: ${text}` }
       : { role: "assistant", content: text };
@@ -108,7 +118,7 @@ export function buildContext({ session, events, participants = [], directiveId =
     const cost = estimateTokens(m.content);
     if (cost > remaining) break;
     remaining -= cost;
-    if (m.content.endsWith(TRUNCATED_MARK)) truncated++;
+    if (m.content.endsWith(TRUNCATED_MARK) || m.content.includes(MIDDLE_MARK)) truncated++;
     window.unshift({ id: e.id, message: m });
   }
 

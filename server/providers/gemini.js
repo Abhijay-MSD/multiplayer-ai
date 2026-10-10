@@ -56,7 +56,7 @@ async function generateWithRetry(modelName, input, { fallback = false, label = "
       // replay, because they may carry fields this code doesn't know about (a signature the service wants back).
       const calls = typeof result.response.functionCalls === "function" ? result.response.functionCalls() ?? [] : [];
       const toolCalls = normalizeToolCalls(calls.map((c, i) => ({ id: `gemini_call_${i + 1}`, name: c?.name, args: c?.args && typeof c.args === "object" ? c.args : {} })));
-      return { text, toolCalls, usage: usageOf(u.promptTokenCount, u.candidatesTokenCount), raw: toolCalls.length ? { provider: "gemini", parts: result.response.candidates?.[0]?.content?.parts ?? [] } : undefined };
+      return { text, toolCalls, usage: usageOf(u.promptTokenCount, u.candidatesTokenCount), stoppedForLength: result.response.candidates?.[0]?.finishReason === "MAX_TOKENS", raw: toolCalls.length ? { provider: "gemini", parts: result.response.candidates?.[0]?.content?.parts ?? [] } : undefined };
     } catch (e) {
       console.error(
         `[multiplayer-ai:timing] ${label} gemini model=${modelName} attempt=${attempt + 1} (${kind}) ` +
@@ -166,7 +166,7 @@ export async function callModel({
   // With tools the request is the structured form: the text above as the first turn, then each finished tool call as the
   // model's own turn and one "function" turn holding every result (roles user, model and function are the library's).
   const input = tools.length || tail.length ? { contents: contentsFor(prompt, tail), ...(tools.length ? { tools: [{ functionDeclarations: tools.map(declaration) }] } : {}) } : prompt;
-  const done = (r, model, extra = {}) => ({ text: r.text || (r.toolCalls.length ? "" : "(no response)"), toolCalls: r.toolCalls, model, usage: r.usage, ...(r.raw ? { raw: r.raw } : {}), ...extra });
+  const done = (r, model, extra = {}) => ({ text: r.text || (r.toolCalls.length ? "" : "(no response)"), toolCalls: r.toolCalls, model, usage: r.usage, stoppedForLength: Boolean(r.stoppedForLength), ...(r.raw ? { raw: r.raw } : {}), ...extra });
 
   try {
     return done(await generateWithRetry(primary, input, opts), primary);

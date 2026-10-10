@@ -2,6 +2,7 @@ import styles from "./Transcript.module.css";
 import { formatClock } from "../lib/time";
 import { Markdown } from "../lib/markdown";
 import { CopyMessage } from "./CopyMessage";
+import { ContinueButton } from "./ContinueButton";
 
 function snippet(text, max = 70) {
   const flat = text.replace(/\s+/g, " ").trim();
@@ -12,11 +13,12 @@ function snippet(text, max = 70) {
 // boxes-in-boxes. How an agent reply, a controller message and a comment are
 // drawn (panel, bubble, plain text) is the theme's call: the data-kind and
 // data-part attributes are the hooks.
-export function TranscriptEntry({ event, identityColor, role, replyTarget }) {
+export function TranscriptEntry({ event, identityColor, role, replyTarget, onContinue = null }) {
   if (event.kind === "join" || event.kind === "takeover" || event.kind === "status") {
     return (
       <div className={`${styles.entry} ${styles.systemLine}`} data-part="entry" data-kind="system">
         {event.content}
+        {onContinue && <ContinueButton onContinue={onContinue} />}
       </div>
     );
   }

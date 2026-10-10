@@ -8,6 +8,8 @@
 //   budget                                the daily step budget is spent
 //   stopped                               someone pressed Stop (the signal's reason says who)
 //   room_closed, files_off, deleted       the room was archived or ended, the host turned the files off, or the room is gone
+// Separately, `stoppedForLength` says the provider cut the last answer at its own length limit: that is not a way out of the loop
+// (the answer is complete as far as it goes), only something the caller tells the room.
 // A way out is not an error: what was written stays, and the caller writes one status line from `stopped.line`. A failure
 // from the provider is an error: it is thrown as the adapter threw it, and the caller reports its category.
 import { executeTool } from "./tools.js";
@@ -49,10 +51,11 @@ export async function runAgentLoop({ store, sessionId, author, messages, call, t
   let model = null;
   let usedFallback = false;
   let noTools = false;
+  let stoppedForLength = false; // did the provider cut the last answer at its length limit?
   const total = { inputTokens: 0, outputTokens: 0, reported: 0 };
 
   const done = (extra = {}) => ({
-    text, model, usedFallback, modelCalls, toolCalls, noTools,
+    text, model, usedFallback, modelCalls, toolCalls, noTools, stoppedForLength,
     usage: total.reported ? { inputTokens: total.inputTokens, outputTokens: total.outputTokens } : null,
     usageComplete: modelCalls > 0 && total.reported === modelCalls,
     stopped: null,
@@ -120,6 +123,7 @@ export async function runAgentLoop({ store, sessionId, author, messages, call, t
       total.outputTokens += result.usage.outputTokens ?? 0;
     }
     if (result.text) text = result.text;
+    stoppedForLength = Boolean(result.stoppedForLength);
 
     const asked = toolsOn && Array.isArray(result.toolCalls) ? result.toolCalls : [];
     if (!asked.length) return done();

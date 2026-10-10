@@ -118,7 +118,7 @@ export function readChatMessage(body) {
       return { id: c?.id, name: c?.function?.name, ...parsed, ...(parsed.argsError && typeof raw === "string" ? { rawArgs: raw.slice(0, 4000) } : {}) };
     })
   );
-  return { text: typeof message.content === "string" ? message.content.trim() : "", toolCalls, usage: usageOf(body.usage?.prompt_tokens, body.usage?.completion_tokens) };
+  return { text: typeof message.content === "string" ? message.content.trim() : "", toolCalls, usage: usageOf(body.usage?.prompt_tokens, body.usage?.completion_tokens), stoppedForLength: body.choices?.[0]?.finish_reason === "length" };
 }
 
 // `credentials` ({ apiKey, model }) is for testing a key that is not saved yet; otherwise
@@ -240,11 +240,11 @@ export async function callModel({
 
   try {
     const r = await generateWithRetry(primary, normalized, opts);
-    return { text: r.text || (r.toolCalls.length ? "" : "(no response)"), toolCalls: r.toolCalls, model: primary, usage: r.usage };
+    return { text: r.text || (r.toolCalls.length ? "" : "(no response)"), toolCalls: r.toolCalls, model: primary, usage: r.usage, stoppedForLength: r.stoppedForLength };
   } catch (e) {
     if (!isTransient(e) || !fallback || fallback === primary) throw e;
     console.error(`[multiplayer-ai] ${primary} failed after retries (${e.status}); falling back to ${fallback}`);
     const r = await generateWithRetry(fallback, normalized, { ...opts, fallback: true });
-    return { text: r.text || (r.toolCalls.length ? "" : "(no response)"), toolCalls: r.toolCalls, model: fallback, usage: r.usage, usedFallback: true };
+    return { text: r.text || (r.toolCalls.length ? "" : "(no response)"), toolCalls: r.toolCalls, model: fallback, usage: r.usage, stoppedForLength: r.stoppedForLength, usedFallback: true };
   }
 }

@@ -17,6 +17,7 @@ import { useTheme } from "../themes/ThemeProvider";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { buildIdentityMap } from "../lib/identity";
 import { isAway, useNow } from "../lib/time";
+import { CONTINUE_TEXT, continuableLine } from "../lib/continue";
 
 const RAIL_KEY = "multiplayer-ai:rail";
 const readRailPref = () => {
@@ -124,6 +125,9 @@ export function SessionRoomView({
   const controller = participants.find((p) => p.role === "controller");
   const now = useNow();
   const controllerHere = Boolean(controller) && !isAway(controller.last_seen, now);
+  // The line "The reply reached its length limit" gets a Continue button, for the controller only, while it is the latest thing
+  // said to the agent and the agent is idle. What it sends is a message like any other, so the server's rules for a message apply.
+  const continueFor = !readOnly && !working && controller?.name === name ? continuableLine(events) : null;
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(shareLink ?? `${window.location.origin}/s/${sessionId}`);
@@ -209,7 +213,7 @@ export function SessionRoomView({
             <div className={toolStyles.conversation}>
               {!embedded && <TranscriptTools session={session} events={events} query={query} onQuery={setQuery} matches={shown.length} />}
               <div className={toolStyles.slot}>
-                <Transcript events={shown} lookup={events} identityMap={identityMap} roleByName={roleByName} working={working && !needle} searching={Boolean(needle)} />
+                <Transcript events={shown} lookup={events} identityMap={identityMap} roleByName={roleByName} working={working && !needle} searching={Boolean(needle)} continueFor={continueFor} onContinue={continueFor ? () => onSendDirective(CONTINUE_TEXT) : null} />
               </div>
             </div>
           </div>

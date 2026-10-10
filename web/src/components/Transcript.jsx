@@ -7,7 +7,9 @@ const NEAR_BOTTOM_PX = 120;
 // PRD 21: the center region, "the stage." Auto-scrolls for new events,
 // but only when the reader is already near the bottom, so scrolling back
 // through history isn't interrupted by live updates.
-export function Transcript({ events, lookup = events, identityMap, roleByName, working, searching = false }) {
+// `continueFor` is the id of the status line that gets a Continue button, and `onContinue` what the button does; both are null for
+// everyone but the controller.
+export function Transcript({ events, lookup = events, identityMap, roleByName, working, searching = false, continueFor = null, onContinue = null }) {
   const containerRef = useRef(null);
   const wasNearBottom = useRef(true);
 
@@ -83,6 +85,7 @@ export function Transcript({ events, lookup = events, identityMap, roleByName, w
             identityColor={identityMap[event.author]}
             role={roleByName[event.author]}
             replyTarget={event.reply_to ? byId.get(event.reply_to) : undefined}
+            onContinue={onContinue && event.id === continueFor ? onContinue : null}
           />
         ))}
         {working && <div className={styles.working} data-part="working-line">Agent is working…</div>}
