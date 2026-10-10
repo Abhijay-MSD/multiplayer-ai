@@ -24,10 +24,11 @@ const BASE_DELAY_MS = 1000;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 class ClaudeError extends Error {
-  constructor(status, message, type) {
+  constructor(status, message, type, retryAfter = null) {
     super(message);
     this.status = status;
     this.type = type;
+    this.retryAfter = retryAfter; // the Retry-After header as it came, for the failure's hint
   }
 }
 const isRetryable = (e) => e.status === 429 || e.status === 503 || e.status === 529 || e.type === "overloaded_error";
@@ -90,7 +91,7 @@ async function generate(model, shaped, { maxOutputTokens, label, fetchImpl, cred
     `[multiplayer-ai:timing] ${label} claude model=${model} status=${res.status} duration=${Date.now() - started}ms ` +
     `input_tokens=${escapeForLog(body.usage?.input_tokens ?? "?")} output_tokens=${escapeForLog(body.usage?.output_tokens ?? "?")}`
   );
-  if (!res.ok) throw new ClaudeError(res.status, `Claude ${res.status}: ${body.error?.message ?? "request failed"}`, body.error?.type);
+  if (!res.ok) throw new ClaudeError(res.status, `Claude ${res.status}: ${body.error?.message ?? "request failed"}`, body.error?.type, res.headers?.get?.("retry-after") ?? null);
   const blocks = Array.isArray(body.content) ? body.content : [];
   const text = blocks.filter((b) => b?.type === "text" && typeof b.text === "string").map((b) => b.text).join("").trim();
   const toolCalls = normalizeToolCalls(blocks.filter((b) => b?.type === "tool_use").map((b) => ({ id: b.id, name: b.name, ...parseToolArguments(b.input) })));

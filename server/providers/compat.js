@@ -21,9 +21,10 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const isRetryable = (status) => status === 429 || status === 503;
 
 class CompatError extends Error {
-  constructor(status, message) {
+  constructor(status, message, retryAfter = null) {
     super(message);
     this.status = status;
+    this.retryAfter = retryAfter; // the Retry-After header as it came, for the failure's hint
   }
 }
 
@@ -51,7 +52,7 @@ async function generate({ url, model, key }, messages, { maxOutputTokens, label,
     `[multiplayer-ai:timing] ${label} compat host=${url.host} model=${model} status=${res.status} ` +
     `duration=${Date.now() - started}ms prompt_tokens=${escapeForLog(body.usage?.prompt_tokens ?? "?")} output_tokens=${escapeForLog(body.usage?.completion_tokens ?? "?")}`
   );
-  if (!res.ok) throw new CompatError(res.status, `${url.host} ${res.status}: ${body.error?.message ?? "request failed"}`);
+  if (!res.ok) throw new CompatError(res.status, `${url.host} ${res.status}: ${body.error?.message ?? "request failed"}`, res.headers?.get?.("retry-after") ?? null);
   return readChatMessage(body);
 }
 

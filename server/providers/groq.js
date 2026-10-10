@@ -40,10 +40,11 @@ const isParseFailure = (e) =>
 const isTransient = (e) => isRetryable(e.status) || isParseFailure(e);
 
 class GroqError extends Error {
-  constructor(status, message, error) {
+  constructor(status, message, error, retryAfter = null) {
     super(message);
     this.status = status;
     this.error = error;
+    this.retryAfter = retryAfter; // the Retry-After header as it came, for the failure's hint
   }
 }
 
@@ -184,7 +185,7 @@ async function generate(model, messages, { maxOutputTokens, label, fallback, fet
   }
   if (!res.ok) {
     logFailure(res.status, body, messages, limit);
-    throw new GroqError(res.status, `Groq ${res.status}: ${body.error?.message ?? "request failed"}`, body.error);
+    throw new GroqError(res.status, `Groq ${res.status}: ${body.error?.message ?? "request failed"}`, body.error, res.headers?.get?.("retry-after") ?? null);
   }
   return readChatMessage(body);
 }

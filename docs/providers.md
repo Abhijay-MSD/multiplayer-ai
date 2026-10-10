@@ -117,3 +117,14 @@ What each provider is sent when `MAX_OUTPUT_TOKENS` is blank, and what it does w
 | OpenAI-compatible | no cap sent: the service's own default | `max_tokens` of N |
 
 When a provider says it stopped a reply at its length limit (Groq and compatible services: `finish_reason` "length"; Claude: `stop_reason` "max_tokens"; Gemini: `finishReason` "MAX_TOKENS"), the part that was written is saved and the room shows "The reply reached its length limit" with a Continue button for the controller.
+
+## How long to wait
+
+When a call fails, Multiplayer AI works out how long the provider says to wait and keeps it, as a whole number of seconds, on the failure (`retryAfterSeconds`; none when there is no usable hint). It is read in this order:
+
+1. A `Retry-After` header, as a number of seconds or an HTTP date, if there is one and it is usable. The adapters for Groq, Claude and OpenAI-compatible services keep this header. The Gemini library does not show us the response headers, so for Gemini only the body is read.
+2. Otherwise the error's own words: a `retryDelay` field in a JSON body (such as `"retryDelay": "30s"`), or a phrase such as "try again in 29.91s", "retry in 850ms", "try again in 1m4.2s", "in 2m" or "in 1h2m3s".
+
+The wait is rounded up to whole seconds. A hint of more than an hour, below nothing, or not a number is treated as no hint, and a header that is not usable does not stop the words from being read. The hint changes only what the room is told; it does not make Multiplayer AI wait or retry any differently than before.
+
+**Only the Groq wording comes from a real failed run**: "Rate limit reached for model … in organization … service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5328, Requested 6660. Please try again in 29.91s." The wording for Claude is NOT CONFIRMED (the `retry-after` header and the error's message were written from its documentation), for Gemini it is NOT CONFIRMED (`retryDelay` was written from the library's type definitions and Google's error format), and for OpenAI-compatible services it is NOT CONFIRMED (services differ). All of it is tested only against stand-ins that answer in the shapes above, so what a real provider sends is not known.
