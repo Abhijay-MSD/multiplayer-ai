@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
-    "@modelcontextprotocol/sdk": "^1.10.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "dotenv": "^16.4.7",
     "express": "^4.21.0",
     "qrcode-generator": "2.0.4",
