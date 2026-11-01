@@ -15,6 +15,6 @@
   "description": "The Supabase client library, installed only by people who use MULTIPLAYER_AI_STORE=supabase. Kept out of server/ so the default install does not include it.",
   "type": "module",
   "dependencies": {
-    "@supabase/supabase-js": "^2.50.0"
+    "@supabase/supabase-js": "^2.118.0"
   }
 }
